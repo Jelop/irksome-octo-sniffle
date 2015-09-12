@@ -102,42 +102,83 @@ bpy.ops.transform.translate(value = (-(PLANE_ROW-1)/2, -(PLANE_COL-1)/2, 0))
 
 calc_zone_thresh()
 #for thresh in ZONE_THRESH:
-#    print(thresh)
-    
+#    print(thresh)     
 
 for i in range(0, PLANE_ROW):
     for j in range(0, PLANE_COL):
         zone = int(max(abs(i - ZONE_FACTOR) , abs(j - ZONE_FACTOR)))
         
-        #cosIn =  (math.pi/2) * ((ZONE_FACTOR + 1) - zone)/(ZONE_FACTOR + 1)
-        #chance = math.cos(cosIn)
-        #cosIn = (math.pi/ZONE_FACTOR) * zone
-        #chance = (math.cos(cosIn) + 1) / 2
+        SUB_BLOCKS = [[]]
+        topleft = get_world_vert(0,i,j)
+        botright = get_world_vert(2,i,j)
         
+        print(topleft.x, topleft.y)
+        print (botright.x, botright.y)
+        
+        bigl = [topleft.x, topleft.y, botright.x, botright.y - (GRID/2)]
+        bigr = [topleft.x, topleft.y + (GRID/2), botright.x, botright.y]
+        bigt = [topleft.x, topleft.y, botright.x - (GRID/2), botright.y]
+        bigb = [topleft.x + (GRID/2), topleft.y, botright.x, botright.y]
+        
+        tl_box = [topleft.x, topleft.y, topleft.x + (GRID/2), topleft.y + (GRID/2)]
+        tr_box = [topleft.x, topleft.y + (GRID/2), botright.x - (GRID/2), botright.y]
+        bl_box = [topleft.x + (GRID/2), topleft.y, botright.x, botright.y - (GRID/2)]
+        br_box = [topleft.x + (GRID/2), topleft.y + (GRID/2), botright.x, botright.y]
+        
+        
+        cell_division = random.randint(1,4)
+        if cell_division == 1:
+            #decide on building, render building
+            SUB_BLOCKS = [[topleft.x,topleft.y,botright.x,botright.y]]
+        elif cell_division == 2:
+            if bool(random.getrandbits(1)):
+                SUB_BLOCKS = [bigl,bigr]
+            else:
+                SUB_BLOCKS = [bigt,bigb]
+        elif cell_division == 3:
+            if bool(random.getrandbits(1)):
+                if bool(random.getrandbits(1)):
+                    SUB_BLOCKS = [bigl,tr_box,br_box]
+                else:
+                    SUB_BLOCKS = [tl_box,bigr,bl_box]
+            else:
+                if bool(random.getrandbits(1)):
+                    SUB_BLOCKS = [bigt,br_box,bl_box]   
+                else:
+                    SUB_BLOCKS = [tl_box, tr_box, bigb]
+            
+        elif cell_division == 4:
+            SUB_BLOCKS = [tl_box, tr_box, br_box, bl_box]
+                
         block_origin = BLOCKS[i][j].location
         max_height = 10 - zone
         #building = rbt_uniform(zone)
         building = rbt_non_uniform(zone)
         
-        if building == 1:
-            block = bpy.ops.mesh.primitive_cube_add(location = (block_origin.x, block_origin.y, BLOCK_HEIGHT))
-            select_object(block)
-            bpy.ops.transform.resize(value = (0.25, 0.25, random.uniform(max_height/2, max_height)))
-            block_ref = bpy.context.active_object
-            block_ref.location.z += block_ref.dimensions.z/2
+        for k in range(0, len(SUB_BLOCKS)):
+            sub_origin_x = SUB_BLOCKS[k][0] + ((SUB_BLOCKS[k][2] - SUB_BLOCKS[k][0])/2)
+            sub_origin_y = SUB_BLOCKS[k][1] + ((SUB_BLOCKS[k][3] - SUB_BLOCKS[k][1])/2) #flipped so its not neg
+            sub_origin = (sub_origin_x, sub_origin_y, BLOCK_HEIGHT)
             
-        elif building == 0:
-            block = bpy.ops.mesh.primitive_cube_add(location = (block_origin.x, block_origin.y, BLOCK_HEIGHT))
-            select_object(block)
-            bpy.ops.transform.resize(value = (0.5, 0.8, random.uniform(2,4)))
-            block_ref = bpy.context.active_object
-            block_ref.location.z += block_ref.dimensions.z/2
-        else:
-            block = bpy.ops.mesh.primitive_cube_add(location = (block_origin.x, block_origin.y, BLOCK_HEIGHT))
-            select_object(block)
-            bpy.ops.transform.resize(value = (0.4, 0.4, random.uniform(0.5,2)))
-            block_ref = bpy.context.active_object
-            block_ref.location.z += block_ref.dimensions.z/2
+            if building == 1:
+                block = bpy.ops.mesh.primitive_cube_add(location = sub_origin)
+                select_object(block)
+                bpy.ops.transform.resize(value = (0.25, 0.25, random.uniform(max_height/2, max_height)))
+                block_ref = bpy.context.active_object
+                block_ref.location.z += block_ref.dimensions.z/2
+                
+            elif building == 0:
+                block = bpy.ops.mesh.primitive_cube_add(location = sub_origin)
+                select_object(block)
+                bpy.ops.transform.resize(value = (0.25, 0.25, random.uniform(2,4)))
+                block_ref = bpy.context.active_object
+                block_ref.location.z += block_ref.dimensions.z/2
+            else:
+                block = bpy.ops.mesh.primitive_cube_add(location = sub_origin)
+                select_object(block)
+                bpy.ops.transform.resize(value = (0.25, 0.25, random.uniform(0.5,2)))
+                block_ref = bpy.context.active_object
+                block_ref.location.z += block_ref.dimensions.z/2
             
 #verts = [BLOCKS[0][0].data.vertices[0], BLOCKS[0][PLANE_COL-1].data.vertices[1], #BLOCKS[PLANE_ROW-1][PLANE_COL-1].data.vertices[2], BLOCKS[PLANE_ROW-1][0].data.vertices[3]]
 
