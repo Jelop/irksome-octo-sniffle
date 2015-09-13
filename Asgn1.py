@@ -15,6 +15,119 @@ ZONE_THRESH = []
 TOWER_STEP = 0
 BUSINESS_STEP = 0
 
+def texture_object(object, num):
+     
+    if num == 1:
+        mat = bpy.data.materials.new("blue")
+        mat.diffuse_color = (0.029,0.142,0.311)
+        mat.diffuse_shader = 'LAMBERT' 
+        mat.diffuse_intensity = 0.126
+        mat.specular_color = (1,1,1)
+        mat.specular_shader = 'COOKTORR'
+        mat.specular_intensity = 0.033
+        mat.emit = 0.16
+        mat.alpha = 1
+        mat.ambient = 1
+     
+    elif num == 2:
+        mat = bpy.data.materials.new("light_brown")
+        mat.diffuse_color = (0.150,0.127,0.123)
+        mat.diffuse_shader = 'LAMBERT' 
+        mat.diffuse_intensity = 0.126
+        mat.specular_color = (1,1,1)
+        mat.specular_shader = 'COOKTORR'
+        mat.specular_intensity = 0.033
+        mat.emit = 0.16
+        mat.alpha = 1
+        mat.ambient = 1
+        
+    elif num == 3:
+        mat = bpy.data.materials.new("build_green")
+        mat.diffuse_color = (0.080,0.150,0.103)
+        mat.diffuse_shader = 'LAMBERT' 
+        mat.diffuse_intensity = 0.126
+        mat.specular_color = (1,1,1)
+        mat.specular_shader = 'COOKTORR'
+        mat.specular_intensity = 0.033
+        mat.emit = 0.16
+        mat.alpha = 1
+        mat.ambient = 1
+        
+    elif num == 4:
+        mat = bpy.data.materials.new("deep_purple")
+        mat.diffuse_color = (0.171,0.101,0.153)
+        mat.diffuse_shader = 'LAMBERT' 
+        mat.diffuse_intensity = 0.126
+        mat.specular_color = (1,1,1)
+        mat.specular_shader = 'COOKTORR'
+        mat.specular_intensity = 0.033
+        mat.emit = 0.16
+        mat.alpha = 1
+        mat.ambient = 1
+        
+    elif num == 5:
+        mat = bpy.data.materials.new("pale_yellow")
+        mat.diffuse_color = (0.990,1.000,0.238)
+        mat.diffuse_shader = 'LAMBERT' 
+        mat.diffuse_intensity = 0.126
+        mat.specular_color = (1,1,1)
+        mat.specular_shader = 'COOKTORR'
+        mat.specular_intensity = 0.033
+        mat.emit = 0.16
+        mat.alpha = 1
+        mat.ambient = 1
+        
+    elif num == 6:
+        mat = bpy.data.materials.new("red")
+        mat.diffuse_color = (0.692,0.085,0.091)
+        mat.diffuse_shader = 'LAMBERT' 
+        mat.diffuse_intensity = 0.126
+        mat.specular_color = (1,1,1)
+        mat.specular_shader = 'COOKTORR'
+        mat.specular_intensity = 0.033
+        mat.emit = 0.16
+        mat.alpha = 1
+        mat.ambient = 1
+        
+    elif num == 7:
+        mat = bpy.data.materials.new("slate")
+        mat.diffuse_color = (0.472,0.410,0.397)
+        mat.diffuse_shader = 'LAMBERT' 
+        mat.diffuse_intensity = 0.126
+        mat.specular_color = (1,1,1)
+        mat.specular_shader = 'COOKTORR'
+        mat.specular_intensity = 0.033
+        mat.emit = 0.16
+        mat.alpha = 1
+        mat.ambient = 1
+    
+    elif num == 8:    
+        mat = bpy.data.materials.new("background")
+        mat.diffuse_color = (0.002,0.073,0.711)
+        mat.diffuse_shader = 'LAMBERT' 
+        mat.diffuse_intensity = 0.126
+        mat.specular_color = (1,1,1)
+        mat.specular_shader = 'COOKTORR'
+        mat.specular_intensity = 0.033
+        mat.emit = 0.16
+        mat.alpha = 1
+        mat.ambient = 1
+        
+     
+    buildingTex = bpy.data.textures.new('buildingTex', type = 'NOISE')
+    mtex = mat.texture_slots.add()
+    mtex.texture = buildingTex
+    #mtex.color = (0.139,0.145,0.145)
+    mtex.texture_coords = 'UV'
+    mtex.use_map_color_diffuse = False
+    mtex.mapping = 'FLAT'
+    mtex.use_map_normal = True
+    mtex.normal_factor = 0.565
+    
+    object.data.materials.append(mat)
+    
+    return
+
 def general_get_world(object_ref, num):
     return object_ref.matrix_world * object_ref.data.vertices[num].co
 
@@ -77,13 +190,13 @@ def create_quad(loc, resize, translation, calc_scale):
 def generate_tower(block, origin, size, max_height):
     
     if size == 4:
-        type = random.randint(1,3)
-        #type = 3
+        #type = random.randint(1,3)
+        type = 1
         if type == 1:
             
             block_ref1 = create_quad(sub_origin,
             [0.6,0.6,random.uniform(max_height/2,max_height)], [-0.3, -0.3,-100], False)
-            
+            texture_object(block_ref1, 1)
             topright = general_get_world(block_ref1, 2)
             botright = general_get_world(block_ref1, 6)
             botleft = general_get_world(block_ref1, 4)
@@ -100,13 +213,19 @@ def generate_tower(block, origin, size, max_height):
             block_ref3 = create_quad((botright.x, botleft.y + (abs(botright.y - botleft.y)/2), 0),
             [0.35, 0.35,new_height], [0,0,-100], True)
             
+            texture_object(block_ref1, random.randint(1,7))
+            num = random.randint(1,7)
+            texture_object(block_ref2, num)
+            texture_object(block_ref3, num)
          
         elif type == 2:
             
             height = random.uniform(max_height/2, max_height)
             seg_height = height / 9
-            
+            num1 = random.randint(1,7)
+            num2 = random.randint(1,7)
             prev_block_z = 0;
+            
             for i in range(0, 9):
                 
                 block1 = bpy.ops.mesh.primitive_cube_add(location = sub_origin)
@@ -126,6 +245,7 @@ def generate_tower(block, origin, size, max_height):
                     bpy.ops.transform.translate(value = (0,0,prev_block_z + seg_height))
                     #block_ref1.location.z = prev_block_z + seg_height
                 
+                texture_object(block_ref1, num1 if i%2 == 0 else num2)
                 prev_block_z = block_ref1.location.z
                 block_ref1.data.update()
                 
@@ -139,6 +259,10 @@ def generate_tower(block, origin, size, max_height):
             block_ref2 = create_quad((toptopleft.x + (abs(topbotright.x-toptopleft.x)/2),
             toptopleft.y + (abs(topbotright.y - toptopleft.y)/2), toptopleft.z), 
             [0.4,0.4,0.4],[0,0,0], False)
+            
+            texture_object(block_ref1, random.randint(1,7))
+            texture_object(block_ref2, random.randint(1,7))
+            
             
     elif size == 2:
         
@@ -159,7 +283,9 @@ def generate_tower(block, origin, size, max_height):
                 (block_ref1.dimensions.z/4) *3)
                 block_ref2 = create_quad((botright.x, botleft.y + (abs(botright.y - botleft.y)/2), 0), [0.3,0.1,new_height], [0,0,-100], True)
                 
-             
+                texture_object(block_ref1, random.randint(1,7))
+                texture_object(block_ref2, random.randint(1,7))
+
             else:
                 
                 block_ref1 = create_quad(sub_origin, [0.25, 0.5,
@@ -173,6 +299,9 @@ def generate_tower(block, origin, size, max_height):
                 (block_ref1.dimensions.z/4) *3)
                 block_ref2 = create_quad((topleft.x + (abs(botleft.x - topleft.x)/2), 
                 topleft.y,0), [0.1,0.3,new_height], [0,0,-100], True)
+                
+                texture_object(block_ref1, random.randint(1,7))
+                texture_object(block_ref2, random.randint(1,7))
                 
         elif type == 2:
             
@@ -189,7 +318,9 @@ def generate_tower(block, origin, size, max_height):
                 block_ref2 = create_quad((topleft.x + (abs(botleft.x-topleft.x)/2), botleft.y, 0),
                 [0.15,0.3,new_height], [0,0,-100], True) # could be worth going to 0.2
                 
-             
+                texture_object(block_ref1, random.randint(1,7))
+                texture_object(block_ref2, random.randint(1,7))
+  
              else:
                 
                 block_ref1 = create_quad(sub_origin, [0.2, 0.5,
@@ -204,6 +335,9 @@ def generate_tower(block, origin, size, max_height):
                 block_ref2 = create_quad((botleft.x, botleft.y +(abs(botright.y - botleft.y)/2),0)
                 ,[0.3,0.15,new_height], [0,0,-100], True) # could be worth going to 0.2
                 
+                texture_object(block_ref1, random.randint(1,7))
+                texture_object(block_ref2, random.randint(1,7))
+                
         elif type == 3:
              
               if vertical > horizontal:
@@ -213,8 +347,10 @@ def generate_tower(block, origin, size, max_height):
                 
                 block_ref2 = create_quad(sub_origin, [0.5, 0.075,
                 random.uniform(max_height/2,max_height)], [0,0.09,-100], False)
-  
-  
+        
+                num = random.randint(1,7)
+                texture_object(block_ref1, num)
+                texture_object(block_ref2, num)
                 #topleft = general_get_world(block_ref1, 0)
                 #botleft = general_get_world(block_ref1, 4)
                 '''
@@ -232,6 +368,10 @@ def generate_tower(block, origin, size, max_height):
                 block_ref2 = create_quad(sub_origin, [0.075, 0.5,
                 random.uniform(max_height/2,max_height)], [0.09,0,-100], False)
                 
+                
+                num = random.randint(1,7)
+                texture_object(block_ref1, num)
+                texture_object(block_ref2, num)
                 #botleft = general_get_world(block_ref1, 4)
                 #botright = general_get_world(block_ref1, 6)
              
@@ -256,6 +396,9 @@ def generate_tower(block, origin, size, max_height):
             block_ref2 = create_quad((toptopleft.x + (abs(topbotright.x-toptopleft.x)/2),
             toptopleft.y + (abs(topbotright.y - toptopleft.y)/2), toptopleft.z), 
             [0.15,0.15,0.15],[0,0,0], False)
+                   
+            texture_object(block_ref1, random.randint(1,7))
+            texture_object(block_ref2, random.randint(1,7))
       
         else:         
             block_ref1 = create_quad(sub_origin,
@@ -280,6 +423,13 @@ def generate_tower(block, origin, size, max_height):
             block_ref5 = create_quad((topleft.x, midy, 0), [0.1,0.1,new_height],
             [0,0,-100], True)    
            
+            num = random.randint(1,7)
+            texture_object(block_ref1, random.randint(1,7))
+            texture_object(block_ref2, num)
+            texture_object(block_ref3, num)
+            texture_object(block_ref4, num)
+            texture_object(block_ref5, num)
+            
             
     return
 
@@ -307,9 +457,18 @@ def generate_business(block, origin, size, max_height):
             toptopleft = general_get_world(block_ref1, 1)
             topbotright = general_get_world(block_ref1, 7)
             
-            block_ref2 = create_quad((toptopleft.x + (abs(topbotright.x-toptopleft.x)/2),
+            block_ref6 = create_quad((toptopleft.x + (abs(topbotright.x-toptopleft.x)/2),
             toptopleft.y + (abs(topbotright.y - toptopleft.y)/2), toptopleft.z), 
             [0.45,0.25,0.15],[0,0,0], False)
+            
+            num = random.randint(1,7)
+            num2 = random.randint(1,7)
+            texture_object(block_ref1, num)
+            texture_object(block_ref2, num2)
+            texture_object(block_ref3, num2)
+            texture_object(block_ref4, num2)
+            texture_object(block_ref5, num)
+            texture_object(block_ref6, num2)
             
         elif type == 2:
             block_ref1 = create_quad(sub_origin,[0.45,0.8,random.uniform(max_height/2,max_height)],
@@ -326,7 +485,16 @@ def generate_business(block, origin, size, max_height):
             new_height = 0.9*block_ref1.dimensions.z
             block_ref5 = create_quad((topleft.x-0.2,quarter_y,0), [0.3,0.3,new_height],[0,0,-100], True)
             new_height = 0.9*block_ref1.dimensions.z
-            block_ref5 = create_quad((topleft.x-0.2,quarter3_y,0), [0.3,0.3,new_height],[0,0,-100], True)
+            block_ref6 = create_quad((topleft.x-0.2,quarter3_y,0), [0.3,0.3,new_height],[0,0,-100], True)
+            
+            num = random.randint(1,7)
+            num2 = random.randint(1,7)
+            texture_object(block_ref1, random.randint(1,7))
+            texture_object(block_ref2, num2)
+            texture_object(block_ref3, num2)
+            texture_object(block_ref4, num2)
+            texture_object(block_ref5, num)
+            texture_object(block_ref6, num)
             
         else:
                     
@@ -336,6 +504,12 @@ def generate_business(block, origin, size, max_height):
             block_ref2 = create_quad(sub_origin,[0.9,0.9,0.1],[0,0,break_step], False)
             block_ref3 = create_quad(sub_origin,[0.9,0.9,0.1],[0,0,break_step*2], False)
             block_ref4 = create_quad(sub_origin,[0.9,0.9,0.1],[0,0,break_step*3], False)
+        
+            num = random.randint(1,7)
+            texture_object(block_ref1, random.randint(1,7))
+            texture_object(block_ref2, num)
+            texture_object(block_ref3, num)
+            texture_object(block_ref4, num)
             
     elif size == 2:
         type = random.randint(1,2)
@@ -350,6 +524,12 @@ def generate_business(block, origin, size, max_height):
                 block_ref2 = create_quad(sub_origin,[0.9,0.4,0.1],[0,0,break_step], False)
                 block_ref3 = create_quad(sub_origin,[0.9,0.4,0.1],[0,0,break_step*2], False)
                 block_ref4 = create_quad(sub_origin,[0.9,0.4,0.1],[0,0,break_step*3], False)
+            
+                num = random.randint(1,7)
+                texture_object(block_ref1, random.randint(1,7))
+                texture_object(block_ref2, num)
+                texture_object(block_ref3, num)
+                texture_object(block_ref4, num)
             else:
                 block_ref1 = create_quad(sub_origin,[0.3,0.8,random.uniform(max_height/2,max_height)],
                 [0.0,0,-100], False)
@@ -357,6 +537,12 @@ def generate_business(block, origin, size, max_height):
                 block_ref2 = create_quad(sub_origin,[0.4,0.9,0.1],[0,0,break_step], False)
                 block_ref3 = create_quad(sub_origin,[0.4,0.9,0.1],[0,0,break_step*2], False)
                 block_ref4 = create_quad(sub_origin,[0.4,0.9,0.1],[0,0,break_step*3], False)
+            
+                num = random.randint(1,7)
+                texture_object(block_ref1, random.randint(1,7))
+                texture_object(block_ref2, num)
+                texture_object(block_ref3, num)
+                texture_object(block_ref4, num)
           
         else:
             if vertical > horizontal:
@@ -375,6 +561,14 @@ def generate_business(block, origin, size, max_height):
                 block_ref5 = create_quad((topleft.x+(abs(botright.x-topleft.x)/2), topleft.y,0),
                 [0.6,0.2,new_height],
                 [0,0,-100], True)
+                
+                num = random.randint(1,7)
+                num2 = random.randint(1,7)
+                texture_object(block_ref1, num)
+                texture_object(block_ref2, num2)
+                texture_object(block_ref3, num2)
+                texture_object(block_ref4, num2)
+                texture_object(block_ref5, num)
             else:
                 block_ref1 = create_quad(sub_origin, [0.25,0.8,random.uniform(max_height/2,max_height)],
                 [0.0,0,-100], False)
@@ -391,6 +585,14 @@ def generate_business(block, origin, size, max_height):
                 block_ref5 = create_quad((botright.x,topleft.y+(abs(botright.y-topleft.y)/2),0),
                 [0.2,0.6,new_height], [0,0,-100], True)
                 
+                num = random.randint(1,7)
+                num2 = random.randint(1,7)
+                texture_object(block_ref1, num)
+                texture_object(block_ref2, num2)
+                texture_object(block_ref3, num2)
+                texture_object(block_ref4, num2)
+                texture_object(block_ref5, num)
+                
     else:
         
         block_ref1 = create_quad(sub_origin, [0.25,0.25,random.uniform(max_height/2,max_height)],
@@ -403,9 +605,16 @@ def generate_business(block, origin, size, max_height):
         toptopleft = general_get_world(block_ref1, 1)
         topbotright = general_get_world(block_ref1, 7)
             
-        block_ref2 = create_quad((toptopleft.x + (abs(topbotright.x-toptopleft.x)/2),
+        block_ref5 = create_quad((toptopleft.x + (abs(topbotright.x-toptopleft.x)/2),
         toptopleft.y + (abs(topbotright.y - toptopleft.y)/2), toptopleft.z), 
         [0.15,0.15,0.15],[0,0,0], False)
+        
+        num = random.randint(1,7)
+        texture_object(block_ref1, random.randint(1,7))
+        texture_object(block_ref2, num)
+        texture_object(block_ref3, num)
+        texture_object(block_ref4, num)
+        texture_object(block_ref5, num)
             
         
     return
@@ -425,16 +634,27 @@ def generate_residence(block, origin, size):
             block_ref1 = create_quad(point, [0.125,0.125,0.125],[-0.25,-0.25,-100], False)
             roof_height = block_ref1.dimensions.z
             block_ref2 = create_quad(point, [0.15,0.15,0.05],[-0.25,-0.25,roof_height], False)
-        
-            block_ref3 = create_quad(point, [0.125,0.125,0.125],[-0.25,0.25,-100], False)
-            block_ref4 = create_quad(point, [0.15,0.15,0.05],[-0.25,0.25,roof_height], False)
-        
-            block_ref5 = create_quad(point, [0.125,0.125,0.125],[0.25,0.25,-100], False)
-            block_ref6 = create_quad(point, [0.15,0.15,0.05],[0.25,0.25,roof_height], False)
-        
-            block_ref7 = create_quad(point, [0.125,0.125,0.125],[0.25,-0.25,-100], False)
-            block_ref8 = create_quad(point, [0.15,0.15,0.05],[0.25,-0.25,roof_height], False)
-        
+            texture_object(block_ref1, random.randint(1,7))
+            texture_object(block_ref2, random.randint(1,7))
+            
+            if random.randint(1,3) < 3:
+                block_ref3 = create_quad(point, [0.125,0.125,0.125],[-0.25,0.25,-100], False)
+                block_ref4 = create_quad(point, [0.15,0.15,0.05],[-0.25,0.25,roof_height], False)
+                texture_object(block_ref3, random.randint(1,7))
+                texture_object(block_ref4, random.randint(1,7))
+                
+            if random.randint(1,3) < 3:
+                block_ref5 = create_quad(point, [0.125,0.125,0.125],[0.25,0.25,-100], False)
+                block_ref6 = create_quad(point, [0.15,0.15,0.05],[0.25,0.25,roof_height], False)
+                texture_object(block_ref5, random.randint(1,7))
+                texture_object(block_ref6, random.randint(1,7))
+                
+            if random.randint(1,3) < 3:
+                block_ref7 = create_quad(point, [0.125,0.125,0.125],[0.25,-0.25,-100], False)
+                block_ref8 = create_quad(point, [0.15,0.15,0.05],[0.25,-0.25,roof_height], False)
+                texture_object(block_ref7, random.randint(1,7))
+                texture_object(block_ref8, random.randint(1,7))
+                 
     elif size == 2:
         vertical = abs(block[2] - block[0])
         horizontal = abs(block[3]-block[1])
@@ -451,18 +671,26 @@ def generate_residence(block, origin, size):
                 block_ref1 = create_quad(point, [0.125,0.125,0.125],[-0.25,-0.25,-100], False)
                 roof_height = block_ref1.dimensions.z
                 block_ref2 = create_quad(point, [0.15,0.15,0.05],[-0.25,-0.25,roof_height], False)
+                texture_object(block_ref1, random.randint(1,7))
+                texture_object(block_ref2, random.randint(1,7))
             
                 if random.randint(1,3) < 3:
                     block_ref3 = create_quad(point, [0.125,0.125,0.125],[-0.25,0.25,-100], False)
                     block_ref4 = create_quad(point, [0.15,0.15,0.05],[-0.25,0.25,roof_height], False)
+                    texture_object(block_ref3, random.randint(1,7))
+                    texture_object(block_ref4, random.randint(1,7))
             
                 if random.randint(1,3) < 3:
                     block_ref5 = create_quad(point, [0.125,0.125,0.125],[0.25,0.25,-100], False)
                     block_ref6 = create_quad(point, [0.15,0.15,0.05],[0.25,0.25,roof_height], False)
+                    texture_object(block_ref5, random.randint(1,7))
+                    texture_object(block_ref6, random.randint(1,7))
             
                 if random.randint(1,3) < 3:
                     block_ref7 = create_quad(point, [0.125,0.125,0.125],[0.25,-0.25,-100], False)
                     block_ref8 = create_quad(point, [0.15,0.15,0.05],[0.25,-0.25,roof_height], False)
+                    texture_object(block_ref7, random.randint(1,7))
+                    texture_object(block_ref8, random.randint(1,7))
             
         else:
             half_x = abs(block[2]-block[0])/2
@@ -475,35 +703,51 @@ def generate_residence(block, origin, size):
                 block_ref1 = create_quad(point, [0.125,0.125,0.125],[-0.25,-0.25,-100], False)
                 roof_height = block_ref1.dimensions.z
                 block_ref2 = create_quad(point, [0.15,0.15,0.05],[-0.25,-0.25,roof_height], False)
+                texture_object(block_ref1, random.randint(1,7))
+                texture_object(block_ref2, random.randint(1,7))
             
                 if random.randint(1,3) < 3:
                     block_ref3 = create_quad(point, [0.125,0.125,0.125],[-0.25,0.25,-100], False)
                     block_ref4 = create_quad(point, [0.15,0.15,0.05],[-0.25,0.25,roof_height], False)
+                    texture_object(block_ref3, random.randint(1,7))
+                    texture_object(block_ref4, random.randint(1,7))
                     
                 if random.randint(1,3) < 3:
                     block_ref5 = create_quad(point, [0.125,0.125,0.125],[0.25,0.25,-100], False)
                     block_ref6 = create_quad(point, [0.15,0.15,0.05],[0.25,0.25,roof_height], False)
+                    texture_object(block_ref5, random.randint(1,7))
+                    texture_object(block_ref6, random.randint(1,7)) 
                 
                 if random.randint(1,3) < 3:
                     block_ref7 = create_quad(point, [0.125,0.125,0.125],[0.25,-0.25,-100], False)
                     block_ref8 = create_quad(point, [0.15,0.15,0.05],[0.25,-0.25,roof_height], False)
+                    texture_object(block_ref7, random.randint(1,7))
+                    texture_object(block_ref8, random.randint(1,7))
         
     else:
         block_ref1 = create_quad(sub_origin, [0.125,0.125,0.125],[-0.25,-0.25,-100], False)
         roof_height = block_ref1.dimensions.z
         block_ref2 = create_quad(sub_origin, [0.15,0.15,0.05],[-0.25,-0.25,roof_height], False)
+        texture_object(block_ref1, random.randint(1,7))
+        texture_object(block_ref2, random.randint(1,7))
         
         if random.randint(1,3) < 3:
             block_ref3 = create_quad(sub_origin, [0.125,0.125,0.125],[-0.25,0.25,-100], False)
             block_ref4 = create_quad(sub_origin, [0.15,0.15,0.05],[-0.25,0.25,roof_height], False)
+            texture_object(block_ref3, random.randint(1,7))
+            texture_object(block_ref4, random.randint(1,7))
         
         if random.randint(1,3) < 3:
             block_ref5 = create_quad(sub_origin, [0.125,0.125,0.125],[0.25,0.25,-100], False)
             block_ref6 = create_quad(sub_origin, [0.15,0.15,0.05],[0.25,0.25,roof_height], False)
+            texture_object(block_ref5, random.randint(1,7))
+            texture_object(block_ref6, random.randint(1,7))
         
         if random.randint(1,3) < 3:
             block_ref7 = create_quad(sub_origin, [0.125,0.125,0.125],[0.25,-0.25,-100], False)
             block_ref8 = create_quad(sub_origin, [0.15,0.15,0.05],[0.25,-0.25,roof_height], False)
+            texture_object(block_ref7, random.randint(1,7))
+            texture_object(block_ref8, random.randint(1,7))
         
     return
 def chance_selector(chance):
@@ -550,7 +794,7 @@ for i in range(0, PLANE_ROW):
                 BLOCK_HEIGHT], [x + GRID, y, BLOCK_HEIGHT]]
         faces = [[0,1,2,3], [0,4,5,1], [1,5,6,2], [2,6,7,3], [3,7,4,0], [4,5,6,7]]
         BLOCKS[i][j] = create_block('block' + str(i) + str(j), (0,0,0), verts, faces)  
-        
+        texture_object(BLOCKS[i][j], 7)
 
 bpy.ops.transform.translate(value = (-(PLANE_ROW-1)/2, -(PLANE_COL-1)/2, 0))
 
@@ -628,9 +872,24 @@ for i in range(0, PLANE_ROW):
                 generate_residence(SUB_BLOCKS[k], sub_origin, sub_size)
 
 verts = [get_world_vert(0,0,0), get_world_vert(1,0,PLANE_COL-1), get_world_vert(2, PLANE_ROW-1, PLANE_COL-1), get_world_vert(3, PLANE_ROW-1, 0)]
-
 faces = [[0,1,2,3]]
 road = create_block('road', (0,0,0), verts, faces)
+
+topleft = general_get_world(BLOCKS[0][0],0)
+topright = general_get_world(BLOCKS[0][PLANE_COL-1],1)
+botleft = general_get_world(BLOCKS[PLANE_ROW-1][0],3)
+sidelength = abs(botleft.x - topleft.x)
+
+verts = [topleft, botleft, (botleft.x,botleft.y,sidelength), (topleft.x,topleft.y,sidelength)] 
+faces = [[0,1,2,3]]
+backpanel1 = create_block('panel1', (0,0,0), verts, faces)
+
+verts = [(topleft.x,topleft,y,sidelength), (topright.x,topright.y,sidelength), topright, topleft]
+faces = [[0,1,2,3]]
+backpanel2 = create_block('panel2', (0,0,0), verts, faces)
+
+texture_object(backpanel1, 8)
+texture_object(backpanel2, 8)
 
 
 mat = bpy.data.materials.new("roadMat")
