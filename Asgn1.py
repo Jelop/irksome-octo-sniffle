@@ -74,13 +74,13 @@ def create_quad(loc, resize, translation, calc_scale):
     block_ref.data.update()
     return block_ref
     
-def generate_tower(block, origin, size, max_height,i,j):
+def generate_tower(block, origin, size, max_height):
     
     if size == 4:
         type = random.randint(1,3)
         #type = 3
         if type == 1:
-            #print(i, j, size, origin)
+            
             block_ref1 = create_quad(sub_origin,
             [0.6,0.6,random.uniform(max_height/2,max_height)], [-0.3, -0.3,-100], False)
             
@@ -283,8 +283,131 @@ def generate_tower(block, origin, size, max_height,i,j):
             
     return
 
-def generate_business():
+def generate_business(block, origin, size, max_height):
     
+    if size == 4:
+        
+        type = random.randint(1,3)
+        if type == 1:
+            block_ref1 = create_quad(sub_origin,[0.8,0.5,random.uniform(max_height/2,max_height)],
+            [0,-0.3,-100], False)
+            break_step = block_ref1.dimensions.z/4 
+            block_ref2 = create_quad(sub_origin,[0.85,0.65,0.1],[0,-0.3,break_step], False)
+            block_ref3 = create_quad(sub_origin,[0.85,0.65,0.1],[0,-0.3,break_step*2], False)
+            block_ref4 = create_quad(sub_origin,[0.85,0.65,0.1],[0,-0.3,break_step*3], False)
+            
+            topleft = general_get_world(block_ref1, 0)
+            botright = general_get_world(block_ref1, 6)
+            midx = topleft.x + (abs(botright.x - topleft.x)/2)
+            
+            new_height = 0.8*block_ref1.dimensions.z
+            block_ref5 = create_quad((midx, botright.y, 0), [0.6,0.6,new_height],
+            [0,0,-100], True)
+            
+            toptopleft = general_get_world(block_ref1, 1)
+            topbotright = general_get_world(block_ref1, 7)
+            
+            block_ref2 = create_quad((toptopleft.x + (abs(topbotright.x-toptopleft.x)/2),
+            toptopleft.y + (abs(topbotright.y - toptopleft.y)/2), toptopleft.z), 
+            [0.45,0.25,0.15],[0,0,0], False)
+            
+        elif type == 2:
+            block_ref1 = create_quad(sub_origin,[0.45,0.8,random.uniform(max_height/2,max_height)],
+            [0.3,0,-100], False)
+            break_step = block_ref1.dimensions.z/4 
+            block_ref2 = create_quad(sub_origin,[0.6,0.9,0.1],[0.3,0,break_step], False)
+            block_ref3 = create_quad(sub_origin,[0.6,0.9,0.1],[0.3,0,break_step*2], False)
+            block_ref4 = create_quad(sub_origin,[0.6,0.9,0.1],[0.3,0,break_step*3], False)
+            
+            topleft = general_get_world(block_ref1, 0)
+            botright = general_get_world(block_ref1, 6)
+            quarter_y = topleft.y + (abs(botright.y - topleft.y)/4)
+            quarter3_y = topleft.y + ((abs(botright.y - topleft.y)/4) * 3)
+            new_height = 0.9*block_ref1.dimensions.z
+            block_ref5 = create_quad((topleft.x-0.2,quarter_y,0), [0.3,0.3,new_height],[0,0,-100], True)
+            new_height = 0.9*block_ref1.dimensions.z
+            block_ref5 = create_quad((topleft.x-0.2,quarter3_y,0), [0.3,0.3,new_height],[0,0,-100], True)
+            
+        else:
+                    
+            block_ref1 = create_quad(sub_origin,[0.8,0.8,random.uniform(max_height/2,max_height)],
+            [0.0,0,-100], False)
+            break_step = block_ref1.dimensions.z/4 
+            block_ref2 = create_quad(sub_origin,[0.9,0.9,0.1],[0,0,break_step], False)
+            block_ref3 = create_quad(sub_origin,[0.9,0.9,0.1],[0,0,break_step*2], False)
+            block_ref4 = create_quad(sub_origin,[0.9,0.9,0.1],[0,0,break_step*3], False)
+            
+    elif size == 2:
+        type = random.randint(1,2)
+        vertical = abs(block[2] - block[0])
+        horizontal = abs(block[3]-block[1])
+        
+        if type == 1:
+            if vertical > horizontal:
+                block_ref1 = create_quad(sub_origin,[0.8,0.3,random.uniform(max_height/2,max_height)],
+                [0.0,0,-100], False)
+                break_step = block_ref1.dimensions.z/4 
+                block_ref2 = create_quad(sub_origin,[0.9,0.4,0.1],[0,0,break_step], False)
+                block_ref3 = create_quad(sub_origin,[0.9,0.4,0.1],[0,0,break_step*2], False)
+                block_ref4 = create_quad(sub_origin,[0.9,0.4,0.1],[0,0,break_step*3], False)
+            else:
+                block_ref1 = create_quad(sub_origin,[0.3,0.8,random.uniform(max_height/2,max_height)],
+                [0.0,0,-100], False)
+                break_step = block_ref1.dimensions.z/4 
+                block_ref2 = create_quad(sub_origin,[0.4,0.9,0.1],[0,0,break_step], False)
+                block_ref3 = create_quad(sub_origin,[0.4,0.9,0.1],[0,0,break_step*2], False)
+                block_ref4 = create_quad(sub_origin,[0.4,0.9,0.1],[0,0,break_step*3], False)
+          
+        else:
+            if vertical > horizontal:
+                block_ref1 = create_quad(sub_origin, [0.8,0.25,random.uniform(max_height/2,max_height)],
+                [0.0,0,-100], False)
+                break_step = block_ref1.dimensions.z/4 
+                block_ref2 = create_quad(sub_origin,[0.9,0.4,0.1],[0,0,break_step], False)
+                block_ref3 = create_quad(sub_origin,[0.9,0.4,0.1],[0,0,break_step*2], False)
+                block_ref4 = create_quad(sub_origin,[0.9,0.4,0.1],[0,0,break_step*3], False)
+                
+                topleft = general_get_world(block_ref1, 0)
+                botright = general_get_world(block_ref1, 6)
+                
+                new_height = random.uniform((block_ref1.dimensions.z/3)*2,
+                (block_ref1.dimensions.z/4) *3)
+                block_ref5 = create_quad((topleft.x+(abs(botright.x-topleft.x)/2), topleft.y,0),
+                [0.6,0.2,new_height],
+                [0,0,-100], True)
+            else:
+                block_ref1 = create_quad(sub_origin, [0.25,0.8,random.uniform(max_height/2,max_height)],
+                [0.0,0,-100], False)
+                break_step = block_ref1.dimensions.z/4 
+                block_ref2 = create_quad(sub_origin,[0.4,0.9,0.1],[0,0,break_step], False)
+                block_ref3 = create_quad(sub_origin,[0.4,0.9,0.1],[0,0,break_step*2], False)
+                block_ref4 = create_quad(sub_origin,[0.4,0.9,0.1],[0,0,break_step*3], False)
+                
+                topleft = general_get_world(block_ref1, 0)
+                botright = general_get_world(block_ref1, 6)
+                
+                new_height = random.uniform((block_ref1.dimensions.z/3)*2,
+                (block_ref1.dimensions.z/4) *3)
+                block_ref5 = create_quad((botright.x,topleft.y+(abs(botright.y-topleft.y)/2),0),
+                [0.2,0.6,new_height], [0,0,-100], True)
+                
+    else:
+        
+        block_ref1 = create_quad(sub_origin, [0.25,0.25,random.uniform(max_height/2,max_height)],
+        [0.0,0,-100], False)
+        break_step = block_ref1.dimensions.z/4 
+        block_ref2 = create_quad(sub_origin,[0.3,0.3,0.1],[0,0,break_step], False)
+        block_ref3 = create_quad(sub_origin,[0.3,0.3,0.1],[0,0,break_step*2], False)
+        block_ref4 = create_quad(sub_origin,[0.3,0.3,0.1],[0,0,break_step*3], False)
+    
+        toptopleft = general_get_world(block_ref1, 1)
+        topbotright = general_get_world(block_ref1, 7)
+            
+        block_ref2 = create_quad((toptopleft.x + (abs(topbotright.x-toptopleft.x)/2),
+        toptopleft.y + (abs(topbotright.y - toptopleft.y)/2), toptopleft.z), 
+        [0.15,0.15,0.15],[0,0,0], False)
+            
+        
     return
 
 def chance_selector(chance):
@@ -400,20 +523,12 @@ for i in range(0, PLANE_ROW):
             print(sub_size)      
             
             if building == 1:
-               generate_tower(SUB_BLOCKS[k], sub_origin, sub_size, tower_max_height,i,j)
+               generate_tower(SUB_BLOCKS[k], sub_origin, sub_size, tower_max_height)
                
             elif building == 0:
-                block = bpy.ops.mesh.primitive_cube_add(location = sub_origin)
-                select_object(block)
-                bpy.ops.transform.resize(value = (0.25, 0.25, random.uniform(2,4)))
-                block_ref = bpy.context.active_object
-                block_ref.location.z += block_ref.dimensions.z/2
+                generate_business(SUB_BLOCKS[k], sub_origin, sub_size, business_max_height)
             else:
-                block = bpy.ops.mesh.primitive_cube_add(location = sub_origin)
-                select_object(block)
-                bpy.ops.transform.resize(value = (0.25, 0.25, random.uniform(0.5,2)))
-                block_ref = bpy.context.active_object
-                block_ref.location.z += block_ref.dimensions.z/2
+                generate_residence(SUB_BLOCKS[k], sub_origin, sub_size)
 
 verts = [get_world_vert(0,0,0), get_world_vert(1,0,PLANE_COL-1), get_world_vert(2, PLANE_ROW-1, PLANE_COL-1), get_world_vert(3, PLANE_ROW-1, 0)]
 
