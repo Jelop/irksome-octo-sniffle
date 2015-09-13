@@ -142,7 +142,7 @@ def generate_tower(block, origin, size, max_height):
             
     elif size == 2:
         
-        type = random.randint(1, 4)
+        type = random.randint(1, 3)
         vertical = abs(block[2] - block[0])
         horizontal = abs(block[3]-block[1])
         
@@ -410,6 +410,102 @@ def generate_business(block, origin, size, max_height):
         
     return
 
+def generate_residence(block, origin, size):
+    
+    if size == 4:
+        quarter_x = abs(block[2]-block[0])/4
+        quarter_y = abs(block[3]-block[1])/4
+        origins = []
+        origins.append((block[0]+quarter_x, block[1] + quarter_y, BLOCK_HEIGHT))
+        origins.append((block[0]+quarter_x, block[1] + (quarter_y*3),BLOCK_HEIGHT))
+        origins.append((block[0]+(quarter_x*3), block[1] + quarter_y, BLOCK_HEIGHT))
+        origins.append((block[0]+(quarter_x*3), block[1] + (quarter_y*3), BLOCK_HEIGHT))
+        
+        for point in origins:
+            block_ref1 = create_quad(point, [0.125,0.125,0.125],[-0.25,-0.25,-100], False)
+            roof_height = block_ref1.dimensions.z
+            block_ref2 = create_quad(point, [0.15,0.15,0.05],[-0.25,-0.25,roof_height], False)
+        
+            block_ref3 = create_quad(point, [0.125,0.125,0.125],[-0.25,0.25,-100], False)
+            block_ref4 = create_quad(point, [0.15,0.15,0.05],[-0.25,0.25,roof_height], False)
+        
+            block_ref5 = create_quad(point, [0.125,0.125,0.125],[0.25,0.25,-100], False)
+            block_ref6 = create_quad(point, [0.15,0.15,0.05],[0.25,0.25,roof_height], False)
+        
+            block_ref7 = create_quad(point, [0.125,0.125,0.125],[0.25,-0.25,-100], False)
+            block_ref8 = create_quad(point, [0.15,0.15,0.05],[0.25,-0.25,roof_height], False)
+        
+    elif size == 2:
+        vertical = abs(block[2] - block[0])
+        horizontal = abs(block[3]-block[1])
+        
+        if vertical > horizontal:
+            
+            quarter_x = abs(block[2]-block[0])/4
+            half_y = abs(block[3]-block[1])/2
+            origins = []
+            origins.append((block[0]+quarter_x, block[1] + half_y, BLOCK_HEIGHT))
+            origins.append((block[0]+(quarter_x*3), block[1] + half_y, BLOCK_HEIGHT))
+            
+            for point in origins:
+                block_ref1 = create_quad(point, [0.125,0.125,0.125],[-0.25,-0.25,-100], False)
+                roof_height = block_ref1.dimensions.z
+                block_ref2 = create_quad(point, [0.15,0.15,0.05],[-0.25,-0.25,roof_height], False)
+            
+                if random.randint(1,3) < 3:
+                    block_ref3 = create_quad(point, [0.125,0.125,0.125],[-0.25,0.25,-100], False)
+                    block_ref4 = create_quad(point, [0.15,0.15,0.05],[-0.25,0.25,roof_height], False)
+            
+                if random.randint(1,3) < 3:
+                    block_ref5 = create_quad(point, [0.125,0.125,0.125],[0.25,0.25,-100], False)
+                    block_ref6 = create_quad(point, [0.15,0.15,0.05],[0.25,0.25,roof_height], False)
+            
+                if random.randint(1,3) < 3:
+                    block_ref7 = create_quad(point, [0.125,0.125,0.125],[0.25,-0.25,-100], False)
+                    block_ref8 = create_quad(point, [0.15,0.15,0.05],[0.25,-0.25,roof_height], False)
+            
+        else:
+            half_x = abs(block[2]-block[0])/2
+            quarter_y = abs(block[3]-block[1])/4
+            origins = []
+            origins.append((block[0]+half_x, block[1] + quarter_y, BLOCK_HEIGHT))
+            origins.append((block[0]+half_x, block[1] + (quarter_y*3), BLOCK_HEIGHT))
+            
+            for point in origins:
+                block_ref1 = create_quad(point, [0.125,0.125,0.125],[-0.25,-0.25,-100], False)
+                roof_height = block_ref1.dimensions.z
+                block_ref2 = create_quad(point, [0.15,0.15,0.05],[-0.25,-0.25,roof_height], False)
+            
+                if random.randint(1,3) < 3:
+                    block_ref3 = create_quad(point, [0.125,0.125,0.125],[-0.25,0.25,-100], False)
+                    block_ref4 = create_quad(point, [0.15,0.15,0.05],[-0.25,0.25,roof_height], False)
+                    
+                if random.randint(1,3) < 3:
+                    block_ref5 = create_quad(point, [0.125,0.125,0.125],[0.25,0.25,-100], False)
+                    block_ref6 = create_quad(point, [0.15,0.15,0.05],[0.25,0.25,roof_height], False)
+                
+                if random.randint(1,3) < 3:
+                    block_ref7 = create_quad(point, [0.125,0.125,0.125],[0.25,-0.25,-100], False)
+                    block_ref8 = create_quad(point, [0.15,0.15,0.05],[0.25,-0.25,roof_height], False)
+        
+    else:
+        block_ref1 = create_quad(sub_origin, [0.125,0.125,0.125],[-0.25,-0.25,-100], False)
+        roof_height = block_ref1.dimensions.z
+        block_ref2 = create_quad(sub_origin, [0.15,0.15,0.05],[-0.25,-0.25,roof_height], False)
+        
+        if random.randint(1,3) < 3:
+            block_ref3 = create_quad(sub_origin, [0.125,0.125,0.125],[-0.25,0.25,-100], False)
+            block_ref4 = create_quad(sub_origin, [0.15,0.15,0.05],[-0.25,0.25,roof_height], False)
+        
+        if random.randint(1,3) < 3:
+            block_ref5 = create_quad(sub_origin, [0.125,0.125,0.125],[0.25,0.25,-100], False)
+            block_ref6 = create_quad(sub_origin, [0.15,0.15,0.05],[0.25,0.25,roof_height], False)
+        
+        if random.randint(1,3) < 3:
+            block_ref7 = create_quad(sub_origin, [0.125,0.125,0.125],[0.25,-0.25,-100], False)
+            block_ref8 = create_quad(sub_origin, [0.15,0.15,0.05],[0.25,-0.25,roof_height], False)
+        
+    return
 def chance_selector(chance):
     if random.uniform(0,1) < chance:
         return True
@@ -482,16 +578,17 @@ for i in range(0, PLANE_ROW):
         br_box = [topleft.x + (GRID/2), topleft.y + (GRID/2), botright.x, botright.y]
         
         
-        cell_division = random.randint(1,4)
-        if cell_division == 1:
+        #cell_division = random.randint(1,4)
+        cell_division = random.uniform(0,1)
+        if cell_division > 0.7:
             #decide on building, render building
             SUB_BLOCKS = [[topleft.x,topleft.y,botright.x,botright.y]]
-        elif cell_division == 2:
+        elif cell_division > 0.4:
             if bool(random.getrandbits(1)):
                 SUB_BLOCKS = [bigl,bigr]
             else:
                 SUB_BLOCKS = [bigt,bigb]
-        elif cell_division == 3:
+        elif cell_division > 0.1:
             if bool(random.getrandbits(1)):
                 if bool(random.getrandbits(1)):
                     SUB_BLOCKS = [bigl,tr_box,br_box]
@@ -503,7 +600,7 @@ for i in range(0, PLANE_ROW):
                 else:
                     SUB_BLOCKS = [tl_box, tr_box, bigb]
             
-        elif cell_division == 4:
+        else:
             SUB_BLOCKS = [tl_box, tr_box, br_box, bl_box]
                 
         TOWER_STEP = zone
@@ -520,7 +617,7 @@ for i in range(0, PLANE_ROW):
             sub_origin = (sub_origin_x, sub_origin_y, BLOCK_HEIGHT)
             sub_size = int(abs(SUB_BLOCKS[k][2] - SUB_BLOCKS[k][0]) * 
             abs(SUB_BLOCKS[k][3] - SUB_BLOCKS[k][1]))
-            print(sub_size)      
+            #print(sub_size)      
             
             if building == 1:
                generate_tower(SUB_BLOCKS[k], sub_origin, sub_size, tower_max_height)
