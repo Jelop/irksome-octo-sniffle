@@ -953,7 +953,7 @@ lamp_object.location = (PLANE_ROW+10, 0, 15)
 camera1 = bpy.ops.object.camera_add(location=(0,0,10*((PLANE_ROW+1)/2)))
 bpy.ops.transform.rotate(value = (math.radians(-90)), axis = (0, 0, 1))
 
-cam2_loc = 25 + (((PLANE_ROW-3)/2)*10)
+cam2_loc = 25 + (((PLANE_ROW-3)/2)*5)
 camera2 =bpy.ops.object.camera_add(location=(cam2_loc,cam2_loc,cam2_loc))
 bpy.ops.transform.rotate(value = math.radians(60), axis = (1, 0, 0))
 bpy.ops.transform.rotate(value = (math.radians(135)), axis = (0, 0, 1))
