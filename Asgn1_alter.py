@@ -1,10 +1,16 @@
+# Joshua La Pine 
+# COSC450 Asgn1
+# 14 September 2015
+# Procedural City Generation Script
+
 import bpy
 import random
 import math
 import time
 
-PLANE_ROW = 9
-PLANE_COL = 9
+#GLOBALS
+PLANE_ROW = 11
+PLANE_COL = 11
 GRID = 2
 BLOCK_HEIGHT = 0.1
 STREET = 0.5
@@ -12,33 +18,19 @@ BLOCKS = [[0 for i in range(PLANE_ROW)] for j in range(PLANE_COL)]
 ZONE_FACTOR = (PLANE_ROW-1)/2
 NUM_ZONES = ZONE_FACTOR + 1
 ZONE_THRESH = []
-TOWER_STEP = 0
-BUSINESS_STEP = 0
 
-def texture_plane(object, num):
-     
-    if num == 1:    
-        mat = bpy.data.materials.new("background")
-        mat.diffuse_color = (0.002,0.073,0.711)
-        mat.diffuse_shader = 'LAMBERT' 
-        mat.diffuse_intensity = 0.126
-        mat.specular_color = (1,1,1)
-        mat.specular_shader = 'COOKTORR'
-        mat.specular_intensity = 0.033
-        mat.emit = 0.16
-        mat.alpha = 1
-        mat.ambient = 1
-        
-    else:
-        mat = bpy.data.materials.new("roadMat")
-        mat.diffuse_color = (0.014,0.014,0.014)
-        mat.diffuse_shader = 'LAMBERT' 
-        mat.diffuse_intensity = 0.545
-        mat.specular_color = (1,1,1)
-        mat.specular_shader = 'COOKTORR'
-        mat.specular_intensity = 0.0
-        mat.alpha = 1
-        mat.ambient = 1
+# Used to texture the road plane underneath the city, just to keep things tidy
+def texture_plane(object):
+
+    mat = bpy.data.materials.new("roadMat")
+    mat.diffuse_color = (0.014,0.014,0.014)
+    mat.diffuse_shader = 'LAMBERT' 
+    mat.diffuse_intensity = 0.545
+    mat.specular_color = (1,1,1)
+    mat.specular_shader = 'COOKTORR'
+    mat.specular_intensity = 0.0
+    mat.alpha = 1
+    mat.ambient = 1
 
     planeTex = bpy.data.textures.new('planeTex', type = 'NOISE')
     mtex = mat.texture_slots.add()
@@ -46,15 +38,15 @@ def texture_plane(object, num):
     mtex.color = (0.139,0.145,0.145)
     mtex.texture_coords = 'UV'
     mtex.use_map_color_diffuse = True 
-   # mtex.use_map_color_emission = True 
     mtex.diffuse_color_factor = 1.0
-    #mtex.use_map_density = True 
     mtex.mapping = 'FLAT' 
     
     object.data.materials.append(mat)
     
     return
 
+# Applies a colour material and noise texture to the given object, colour determined
+# by the num argument
 def texture_object(object, num):
      
     if num == 1:
@@ -145,7 +137,6 @@ def texture_object(object, num):
     buildingTex = bpy.data.textures.new('buildingTex', type = 'NOISE')
     mtex = mat.texture_slots.add()
     mtex.texture = buildingTex
-    #mtex.color = (0.139,0.145,0.145)
     mtex.texture_coords = 'UV'
     mtex.use_map_color_diffuse = False
     mtex.mapping = 'FLAT'
@@ -156,18 +147,22 @@ def texture_object(object, num):
     
     return
 
+# Given an object reference and a vertex number its world coordinates are returned
 def general_get_world(object_ref, num):
     return object_ref.matrix_world * object_ref.data.vertices[num].co
 
+# Same as above but used only for blocks. Earlier code, not worth rewriting.
 def get_world_vert(num, row, col):
     block_ref = BLOCKS[row][col]
     return block_ref.matrix_world * block_ref.data.vertices[num].co
 
+# Calculates the building thresholds for each zone according to the cosine function
 def calc_zone_thresh():
     for i in range(0, int(NUM_ZONES)):
         cosIn = (math.pi/2)*((ZONE_FACTOR - i)/ZONE_FACTOR)
         ZONE_THRESH.append(math.cos(cosIn))
 
+# Given a zone number this function returns which type of building should be rendered
 def rbt_non_uniform(zone):
     chance = random.uniform(0,1)
     if zone == 0:
@@ -183,21 +178,9 @@ def rbt_non_uniform(zone):
                 return 0
             else:
                 return -1
-
-def rbt_uniform(zone):
-    chance = random.uniform(0,1)
-    if zone == 0:
-        return 1
-    elif zone == ZONE_FACTOR:
-        return -1
-    else:
-        if chance > ZONE_THRESH[zone]:
-            return 1
-        elif chance > ZONE_THRESH[zone-1] and chance < ZONE_THRESH[zone]:
-            return 0
-        else:
-            return -1
-
+            
+# Creates a cube and then scales and translates it according to given arguments,
+# Is set up to handle most common cases when given specific input            
 def create_quad(loc, resize, translation, calc_scale):
     block = bpy.ops.mesh.primitive_cube_add(location = loc)
     select_object(block)
@@ -210,19 +193,23 @@ def create_quad(loc, resize, translation, calc_scale):
     
     if translation[2] == -100:
        translation[2] = block_ref.dimensions.z/2
-       #translation = tuple(translation)
     bpy.ops.transform.translate(value = translation)
     block_ref.data.update()
     return block_ref
-    
+   
+# Returns a random element from a given list, used to ensure different colours
+# are assigned to different parts of buildings 
 def choose_element(list):
     num = random.randint(0,len(list)-1)
     return list[num]
 
+# Creates a tower building based on the given critera.
 def generate_tower(block, origin, size, max_height):
     
+    #Size of the block
     if size == 4:
         
+        #Used to produces several different types of tower
         type = random.randint(1,3)
         
         if type == 1:
@@ -236,13 +223,11 @@ def generate_tower(block, origin, size, max_height):
             
             new_height = random.uniform((block_ref1.dimensions.z/3)*2, 
             (block_ref1.dimensions.z/4) *3)
-            #scale = new_height / bpy.context.active_object.dimensions.z
             block_ref2 = create_quad((topright.x + (abs(botright.x - topright.x)/2),
             topright.y, 0), [0.40, 0.40,new_height], [0,0,-100], True)
              
             new_height = random.uniform((block_ref1.dimensions.z/3)*2,
             (block_ref1.dimensions.z/4)*3)
-            #scale = new_height / bpy.context.active_object.dimensions.z 
             block_ref3 = create_quad((botright.x, botleft.y + (abs(botright.y - botleft.y)/2), 0),
             [0.35, 0.35,new_height], [0,0,-100], True)
             
@@ -278,13 +263,10 @@ def generate_tower(block, origin, size, max_height):
                     bpy.ops.transform.resize(value = (0.9-(i*0.1), 0.9-(i*0.1), seg_height))
                 bpy.ops.object.mode_set(mode = 'OBJECT')
                 block_ref1 = bpy.context.active_object
-                #block_ref1.dimensions.z = seg_height
                 if i == 0:
                     bpy.ops.transform.translate(value = (0,0,block_ref1.dimensions.z/2))
-                    #block_ref1.location.z = sub_origin[2] + (block_ref1.dimensions.z/2)
                 else:
                     bpy.ops.transform.translate(value = (0,0,prev_block_z + seg_height))
-                    #block_ref1.location.z = prev_block_z + seg_height
                 
                 texture_object(block_ref1, num1 if i%2 == 0 else num2)
                 prev_block_z = block_ref1.location.z
@@ -369,7 +351,7 @@ def generate_tower(block, origin, size, max_height):
                 new_height = random.uniform((block_ref1.dimensions.z/3)*2,
                 (block_ref1.dimensions.z/4) *3)
                 block_ref2 = create_quad((topleft.x + (abs(botleft.x-topleft.x)/2), botleft.y, 0),
-                [0.15,0.3,new_height], [0,0,-100], True) # could be worth going to 0.2
+                [0.15,0.3,new_height], [0,0,-100], True)
                 
                 num = random.randint(1,5)
                 elements = list(range(1,6))
@@ -390,7 +372,7 @@ def generate_tower(block, origin, size, max_height):
                 new_height = random.uniform((block_ref1.dimensions.z/3)*2,
                 (block_ref1.dimensions.z/4) *3)
                 block_ref2 = create_quad((botleft.x, botleft.y +(abs(botright.y - botleft.y)/2),0)
-                ,[0.3,0.15,new_height], [0,0,-100], True) # could be worth going to 0.2
+                ,[0.3,0.15,new_height], [0,0,-100], True)
                 
                 num = random.randint(1,5)
                 elements = list(range(1,6))
@@ -490,6 +472,7 @@ def generate_tower(block, origin, size, max_height):
             
     return
 
+# Creates a business type building based on the passed arguments
 def generate_business(block, origin, size, max_height):
     
     if size == 4:
@@ -705,6 +688,7 @@ def generate_business(block, origin, size, max_height):
                   
     return
 
+# Creates residential buildings
 def generate_residence(block, origin, size):
     
     if size == 4:
@@ -836,16 +820,14 @@ def generate_residence(block, origin, size):
             texture_object(block_ref8, random.randint(1,7))
         
     return
-def chance_selector(chance):
-    if random.uniform(0,1) < chance:
-        return True
-    return False
 
+# Utility method to save typing
 def select_object(object):
     bpy.context.selected_objects.clear()
     bpy.context.selected_objects.append(object)
     return
 
+# Creates a mesh from a given set of vertices and faces. Primarily used to create the city blocks
 def create_block(name, origin, verts, faces):
     mesh = bpy.data.meshes.new(name+'Mesh')
     obj = bpy.data.objects.new(name, mesh)
@@ -854,34 +836,23 @@ def create_block(name, origin, verts, faces):
     bpy.context.scene.objects.link(obj)
     bpy.context.scene.objects.active = obj
     obj.select = True
-    #faces = [[]]
-    #for i in range (len(verts)):
-    #    faces[0].append(i,)
-    #    #print(faces)
+
     mesh.from_pydata(verts, [], faces)
     #snap origin to itself here
     bpy.ops.object.origin_set(type = 'ORIGIN_CENTER_OF_MASS')
     mesh.update()
     return obj
 
+## Start of Execution ##
 bpy.ops.object.select_pattern()
 bpy.ops.object.delete()
 
-start_time = time.time()
-
+# Generates the city blocks and textures them
 for i in range(0, PLANE_ROW):   
     for j in range(0, PLANE_COL):
         
-        #x = ((i-(PLANE_ROW/2)) * GRID) + (STREET * (i-1))
-        #y = ((j-(PLANE_COL/2)) * GRID) + (STREET * (j-1))
-        
-        #x = ((i-(PLANE_ROW/2)) * GRID) + (STREET * i)
-        #y = ((j-(PLANE_COL/2)) * GRID) + (STREET * j)
-        
         x = (i * GRID) + (i * STREET)
         y = (j * GRID) + (j * STREET)
-        #x = i - ((PLANE_ROW*GRID)/2) - ((STREET*(PLANE_ROW-1))/2)
-        #y = j - ((PLANE_COL*GRID)/2) - ((STREET*(PLANE_COL-1))/2)
 
         verts = [[x, y, 0],[x, y + GRID, 0], [x + GRID, y + GRID, 0], [x + GRID, y, 0],
                 [x, y, BLOCK_HEIGHT],[x, y + GRID, BLOCK_HEIGHT], [x + GRID, y + GRID,
@@ -890,12 +861,13 @@ for i in range(0, PLANE_ROW):
         BLOCKS[i][j] = create_block('block' + str(i) + str(j), (0,0,0), verts, faces)  
         texture_object(BLOCKS[i][j], 5)
 
+# Translates the blocks to be centred around the global origin
 block_shift = (-((PLANE_ROW*GRID) + ((PLANE_ROW-1)*STREET))/2, -((PLANE_COL*GRID) + ((PLANE_COL-1)*STREET))/2, 0)
 bpy.ops.transform.translate(value = block_shift)
-#bpy.ops.transform.translate(value = (-(PLANE_ROW-1)/0.5, -(PLANE_COL-1)/0.5, 0))
 
 calc_zone_thresh()     
 
+# For each city block
 for i in range(0, PLANE_ROW):
     for j in range(0, PLANE_COL):
         zone = int(max(abs(i - ZONE_FACTOR) , abs(j - ZONE_FACTOR)))
@@ -904,9 +876,7 @@ for i in range(0, PLANE_ROW):
         topleft = get_world_vert(0,i,j)
         botright = get_world_vert(2,i,j)
         
-        #print(topleft.x, topleft.y)
-        #print (botright.x, botright.y)
-        
+        #Coordinates for each potential sub-block
         bigl = [topleft.x, topleft.y, botright.x, botright.y - (GRID/2)]
         bigr = [topleft.x, topleft.y + (GRID/2), botright.x, botright.y]
         bigt = [topleft.x, topleft.y, botright.x - (GRID/2), botright.y]
@@ -917,11 +887,9 @@ for i in range(0, PLANE_ROW):
         bl_box = [topleft.x + (GRID/2), topleft.y, botright.x, botright.y - (GRID/2)]
         br_box = [topleft.x + (GRID/2), topleft.y + (GRID/2), botright.x, botright.y]
         
-        
-        #cell_division = random.randint(1,4)
+        # Determines which combination of sub_blocks a block will consist of
         cell_division = random.uniform(0,1)
         if cell_division > 0.7:
-            #decide on building, render building
             SUB_BLOCKS = [[topleft.x,topleft.y,botright.x,botright.y]]
         elif cell_division > 0.4:
             if bool(random.getrandbits(1)):
@@ -942,23 +910,23 @@ for i in range(0, PLANE_ROW):
             
         else:
             SUB_BLOCKS = [tl_box, tr_box, br_box, bl_box]
-                
+               
+        # Parameters for randomisation, would have liked to tweak given more time        
         TOWER_STEP = zone
         BUSINESS_STEP = zone
         block_origin = BLOCKS[i][j].location
         tower_max_height = 10 - TOWER_STEP
         business_max_height = 7 - BUSINESS_STEP
-        #building = rbt_uniform(zone)
         building = rbt_non_uniform(zone)
         
+        # For each sub-block
         for k in range(0, len(SUB_BLOCKS)):
             sub_origin_x = SUB_BLOCKS[k][0] + (abs((SUB_BLOCKS[k][2] - SUB_BLOCKS[k][0]))/2)
-            sub_origin_y = SUB_BLOCKS[k][1] + (abs((SUB_BLOCKS[k][3] - SUB_BLOCKS[k][1]))/2) #flipped so its not neg
+            sub_origin_y = SUB_BLOCKS[k][1] + (abs((SUB_BLOCKS[k][3] - SUB_BLOCKS[k][1]))/2) 
             sub_origin = (sub_origin_x, sub_origin_y, BLOCK_HEIGHT)
             sub_size = int(abs(SUB_BLOCKS[k][2] - SUB_BLOCKS[k][0]) * 
             abs(SUB_BLOCKS[k][3] - SUB_BLOCKS[k][1]))
-            #print(sub_size)      
-            
+              
             if building == 1:
                generate_tower(SUB_BLOCKS[k], sub_origin, sub_size, tower_max_height)
                
@@ -967,30 +935,24 @@ for i in range(0, PLANE_ROW):
             else:
                 generate_residence(SUB_BLOCKS[k], sub_origin, sub_size)
 
+#Creates a plane under the city and textures it to look like a road
 verts = [get_world_vert(0,0,0), get_world_vert(1,0,PLANE_COL-1), get_world_vert(2, PLANE_ROW-1, PLANE_COL-1), get_world_vert(3, PLANE_ROW-1, 0)]
 faces = [[0,1,2,3]]
 road = create_block('road', (0,0,0), verts, faces)
-texture_plane(road, 2)
+texture_plane(road)
 
+#Lamp Setup
 lamp_data = bpy.data.lamps.new(name="SunData", type='SUN')
 lamp_data.sky.use_sky = True
 lamp_data.sky.sky_blend = 0.7
-
-# Create new object with our lamp datablock
 lamp_object = bpy.data.objects.new(name="Sun1", object_data=lamp_data)
-
-# Link lamp object to the scene so it'll appear in this scene
 bpy.context.scene.objects.link(lamp_object)
-
-# Place lamp to a specified location
 lamp_object.location = (PLANE_ROW+10, 0, 15)
 
-#sun = bpy.ops.object.lamp_add(type = "SUN", location = (PLANE_ROW+10, 0, 15))
-
+#Define and position cameras
 camera1 = bpy.ops.object.camera_add(location=(0,0,10*((PLANE_ROW+1)/2)))
 bpy.ops.transform.rotate(value = (math.radians(-90)), axis = (0, 0, 1))
 
-#camera2= bpy.ops.object.camera_add(location=((PLANE_ROW+int(PLANE_ROW/2))*2,(PLANE_COL+int(PLANE_COL/2))*2,1))
 cam2_loc = 25 + (((PLANE_ROW-3)/2)*10)
 camera2 =bpy.ops.object.camera_add(location=(cam2_loc,cam2_loc,cam2_loc))
 bpy.ops.transform.rotate(value = math.radians(60), axis = (1, 0, 0))
@@ -998,4 +960,14 @@ bpy.ops.transform.rotate(value = (math.radians(135)), axis = (0, 0, 1))
 
 camera3 = bpy.ops.object.camera_add(location=(0,-(41+((PLANE_COL-3)/2)),7))
 bpy.ops.transform.rotate(value = math.radians(92), axis = (1, 0, 0))
-print("Generation time = " , time.time() - start_time)
+
+# Takes pictures using the cameras. Code borrowed from Ashley Manson.
+scene = bpy.context.scene
+n = 0
+for ob in scene.objects:
+    if ob.type == 'CAMERA':
+        bpy.context.scene.camera = ob
+        file = bpy.path.abspath("//render%d.png" %n)
+        n += 1
+        bpy.context.scene.render.filepath = file
+        bpy.ops.render.render( write_still=True )
