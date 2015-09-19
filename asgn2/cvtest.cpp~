@@ -1,0 +1,9 @@
+#include "opencv/opencv.hpp"
+
+int main(int argc, char **argv){
+
+    cv::Mat image = imread(argv[1]);
+    imshow(image);
+    waitKey(0);
+    return 0;
+}

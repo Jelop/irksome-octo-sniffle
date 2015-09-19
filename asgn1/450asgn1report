@@ -1,0 +1,211 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 3.1 (25/3/14)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Linux and Unix Users Group at Virginia Tech Wiki 
+% (https://vtluug.org/wiki/Example_LaTeX_chem_lab_report)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{graphicx} % Required for the inclusion of images
+%\usepackage{natbib} % Required to change bibliography style to APA
+\usepackage{amsmath} % Required for some math elements 
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{url}
+%\usepackage{biblatex}
+
+\geometry {a4paper, left = 30mm}
+\renewcommand{\baselinestretch}{1.5}
+\setlength{\parskip}{1em}
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+
+%\usepackage{times} % Uncomment to use the Times New Roman font
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{COSC450: Procedural City Generation} % Title
+
+\author{Joshua La Pine} % Author name
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+\begin{center}
+Dept. of Computer Science \\
+Otago University \\
+
+\end{center}
+\newpage
+% If you wish to include an abstract, uncomment the lines below
+% \begin{abstract}
+% Abstract text
+% \end{abstract}
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+
+\section{Planning and Difficulties}
+
+When deciding on how best to approach this assignment there were several key ideas that came to mind. First and foremost was my desire to render a city with a layout beyond a standard evenly spaced grid. Initially my plan was to generate a series of 'city blocks', each block a plane with three, four, or five vertices. The vertices of these blocks would be placed in a vaguely grid based way but with their specific locations determined pseudo-randomly. A vertex's location was to be the product of it's appoximate location in the 'grid', the locations of surrounding vertices, and the number of vertices comprising that particular block. I was about 200 lines of python deep before I realised the complexity of what I had imagined. For example, if I wanted the edges of the city to be straight I had to program a case for each edge piece, that is a special case for the left, right, top, and bottom edges of the city, not to mention the corner pieces which would have required two straight edges. Then there is the issue of how to determine the placement of internal vertices. I had envisioned a city where a block with an angled edge would have a neighbour with an edge parallel to it, where blocks could be multiple different sizes and shapes and the surrounding blocks would be placed in such a way that the space was filled. I was forced to abandon this approach when I realised that this was too complex for the amount of time I had to complete the assignment. \par
+
+Not wanting to give up on a non-grid based layout I came up with another idea. I would start with a plane and would then bisect that plane repeatedly into different meshes to create a collection of blocks. The plan was to bisect the original mesh into rows and then split each row into columns with the angle of the split and width of the block being randomised each time but with a bias towards straight lines and thin blocks. I had hoped that this would create a grid like pattern but one that was more interesting to look at. This turned out to be another dead end primarily due to the blender functions available. A bisection doesn't return a reference to the newly created mesh, it only puts the new mesh into the scene's object array. As I was unable to find out how it determined the index of the new mesh I had to abandon this idea as well.\par
+
+So after four days of wasted effort I decided to create a typical grid based layout for my city. In order to make my city more complex I decided to create various block layouts and different kinds of buildings, as well as a function that determines the type of building to create based on distance from the centre of the city. 
+
+\section{Implementation}
+
+
+
+\section{Results}
+
+\section{Obstacles}
+
+\section{Future Work}
+
+
+\subsection{Motivation}
+
+Our vision for our completed Giguesaur application is allowing a classroom of children, each with their own iPad, to run around and solve a jigsaw puzzle together. Imagine a classroom full of kids where they are all trying to work on a single conventional jigsaw puzzle; such a scheme is in no way practical. The main goal of our project, besides all the design and technical subgoals, is simply to make a game that is fun for children to play and work together on. 
+
+\subsection{App Overview}
+
+The aim of the Giguesaur project is to create an iPad application that allows a group of people to collaboratively solve a jigsaw puzzle that is rendered using augmented reality. The virtual jigsaw is assembled on a playing area in the real world. This 'game board' is decorated with physical markers which can be tracked using the iPad's camera and the feed from the camera will be displayed on the iPad's screen for the user to see. The puzzle's pieces will be rendered on the screen in such a way that they appear as though they are in the real world; they will look as if superimposed upon the physical game board. The user will be able to interact with the puzzle pieces through a user interface on the iPad. Using touch gestures and by rotating the iPad the user can pick up, rotate, and place pieces down on the board in their desired location. Finally, a large portion of the project is to implement networking so that multiple users will be able to collaborate to solve a shared puzzle. 
+
+\subsection{Project Format}
+
+Development of the Giguesaur application is a fairly large task, the scope of which is outside the bounds of a fourth year project for a single person. So the project is split up into three separate tasks that will be combined into the final application. Shahne Rodgers is in control of the networking facet of the project, all of the communication between a device and the server is her domain. Ashley Manson is working on all of the game logic and the user interface, so he is developing the game itself, the puzzle piece rendering, and also how the user interacts with the puzzle. I am responsible for the localisation of the iPad, the computer vision element of the project, which I will explain in the following section. 
+
+\section{Localisation}
+\subsection{What is Localisation}
+
+Localisation is the task of locating the iPad's camera relative to some real world object. As mentioned above our application makes use of a physical game board that is tracked with the camera. The current board is a 7$\times$10 checkerboard pattern and using that game board (or tracking marker), we define a real world coordinate system in millimetres that is tied to the board's position. So a particular point on the board (one of the outermost internal corners) is the origin of our real world coordinate system and as we know the dimensions of the squares of the checkerboard we can easily describe other points. \par
+
+Now that we have a real world coordinate system in place we can describe the location of the camera in relation to it (See Figure 1). This position is described by a translation and a rotation vector. These vectors give the camera's translation and change in orientation relative to the origin of our real world coordinate system.\par 
+
+%\vspace*{2\baselineskip}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.65\textwidth]{cam} % Include the image placeholder.png
+\caption{Real world coordinate system axis markers with coordinates.}
+\end{center}
+\end{figure}
+
+\subsection {Why do we need Localisation?}
+
+Localisation is necessary in order to render our virtual puzzle pieces in such a way that they look as though they lie on the physical game board. 
+\vspace*{2\baselineskip}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.65\textwidth]{giguesaur_mockup} % Include the image placeholder.png
+\caption{Mock up of correctly superimposed puzzle pieces.}
+\end{center}
+\end{figure}
+
+In Figure 2, above, the fluorescent green and orange pieces have been superimposed upon the board with the correct perspective. However, if the iPad was in a different place relative to the checkerboard the virtual pieces would have to be rendered differently. It is not difficult to imagine that if the iPad's camera was pointing at the checkerboard from directly above, the pieces would look more or less square. Therefore it is necessary to know where the iPad is in order to render pieces from the appropriate perspective.
+
+\section{Achievements to Date}
+
+\subsection{Overview}
+
+My work on the Giguesaur project began by researching marker tracking as it was described in the project specification. I came across a variety of articles on the subject but of particular interest was the paper behind the ARToolkit \cite{artoolkit}, which is a widely used marker tracking package. I then began to use OpenCV as I would need image processing capabilites and followed that by learning about pose estimation and camera calibration, which are large components of my project. After implementing these processes I began to port my code to the iOS platform. 
+
+\subsection{OpenCV}
+
+OpenCV stands for Open Source Computer Vision and it is a software library used for computer vision tasks. It has functions for easy image I/O, camera initialisation and frame capture, image processing, pose estimation, camera calibration, and iOS support. In short it has most of what I need in order to complete my part of the Giguesaur project.
+
+\subsection{Pose Estimation}
+
+Pose estimation is the name of the process which is used to locate a camera. It is the core process for my part of the Giguesaur project. A pose estimation algorithm has a number of requirements before its output can be calculated. \par
+
+The first thing required is that the camera you are locating must be calibrated. Camera calibration comprises a decent portion of the work I have done so far and the work I still have to do, so I will go into detail about it in the following section. \par
+
+Secondly the algorithm requires a set of world-space coordinates. In our case this set of coordinates is all the internal corners of our checkerboard pattern. As the origin of our world-space coordinate system is one of the outermost internal corners and we know the side length of the squares we can then set up a nested for loop block where each loop increments by the square side length. Each iteration pushes a 2D vector comprising an x and y coordinate to an array. Note that the z coordinate can be excluded because our checkerboard is flat and so all the points are at z = 0. Once the nested for loop block has finished executing we have an array containing the coordinates of all the chessboard's internal corners. \par
+
+The last requirement for a pose estimation algorithm is a way to find the points in image space that correspond to the previously described world-space coordinates. As the checkerboard image is a common pattern used in camera calibration routines OpenCV has a built in function called findChessboardCorners. This function locates the internal corners of a chessboard and outputs an array of their coordinates in image space. \par
+
+Once all of the above has been calculated then a pose estimation algorithm can be run with the arrays of points as input along with matrices related to camera calibration. The algorithm I use in this project is a OpenCV function called SolvePnP \cite{calib3}. Writing my own routine for such a task would be quite an undertaking and it is only one part of my piece of the project. The SolvePnP function then outputs two vectors, one for rotation and one for translation. These vectors together describe the location of the camera relative to the checkerboard. \par
+
+The rotation and translation vectors can be used to transform points in world-space to points in image-space and vice versa. So we can take points defined in world-space and transform them using these vectors in order to render them in the correct position in image-space. OpenCV provides a function that projects points in world-space to points in image-space. This function takes the vectors as input along with a set of world-space coordinates and returns an array of image-space coordinates. I have used this function as a proof of concept to ensure that my all of my work up to this point is correct and have superimposed a wire frame cube onto the checkerboard, which you can see below in Figure 3.
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.65\textwidth]{arCube} 
+\caption{Augmented reality wireframe cube.}
+\end{center}
+\end{figure}
+
+\subsection{Camera Calibration}
+
+Camera calibration is a necessary step in the process of pose estimation. Figure 4, below, is a simplified diagram of an ideal pinhole camera model. A pinhole camera takes an image of the real world and projects it onto an image plane \cite{pinhole} as seen in the image below. In reality a pinhole does not receive enough light in order to do this, so a lens must be used to focus enough light to project the image. Using a lens introduces a source of several forms of distortion \cite{calib1}. This distortion must be accounted for when performing image processing tasks such as pose estimation. \par
+
+The characteristics of the camera must also be determined. These characteristics include the pixel coordinates of the principal point and the scale factors of the x and y image-space axes. The principal point is where the optical axis of the camera intersects the image plane \cite{wikicalib}.
+
+\vspace*{2\baselineskip}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.65\textwidth]{PinholeCameraModel} % Include the image placeholder.png
+\caption{Source: http://docs.mitk.org/nightly-qt4/PinholeCameraModel.png}
+\end{center}
+\end{figure}
+
+Together these camera characteristics and distortion measurements are known as the camera's intrinsic parameters. These parameters are required when calculating the rotation and translation vectors that describe the camera's location, otherwise known as the camera's extrinsic parameters. \par
+
+I use OpenCV for my camera calibration routine which is based on the calibration technique developed by Zhang \cite{zhang}. I start by taking a number of photos, from different angles, of a calibration pattern \cite{calib2}. Camera calibration routines make use of a few common patterns with easily detectable features, one such pattern is a checkerboard. So in our case the checkerboard is both the game board / tracking marker and calibration pattern. The ideal number of photos is around 15-20, a value I found by experimenting. Fewer than 15 and the pose estimation begins to become erratic, resulting in distorted augmented reality models. I then create a list of those images in XML format with a small program found on the OpenCV Github page \cite{opencvGit}. Once the image list has been generated and the parameters of the calibration defined in a separate XML file I run the full calibration program provided on the OpenCV Github. The result of this calibration procedure is an XML file containing a “Camera Matrix”, which is a 3$\times$3 matrix describing the camera's characteristics as mentioned above, and a “Distortion Coefficients” matrix, which is a 5$\times$1 matrix describing measures of various forms of distortion. These matrices are parsed by my program to be used by the pose estimation function. 
+
+\subsection{iOS Development and Difficulties}
+
+iOS is the operating system used on Apple's mobile devices such as iPhones, iPads, and the iPod Touch. Making our application compatible with iOS is a huge portion of the project because, as you might imagine, carrying a computer around to solve a puzzle is not all that practical. Once I had an augmented reality prototype working correctly I began to port my existing code over to the iOS platform. \par
+
+Developing for iOS is different from developing for a regular computer. Code that works on a regular iMac will not work on an iOS device without modification and the use of different APIs is usually required. As my code makes heavy use of OpenCV functions I had to use the OpenCV framework for iOS, and this proved to be a more complicated exercise than I had anticipated. \par
+
+For example, retrieving a frame from the camera on the iMac requires very little code to achieve. It is simply a matter of declaring a VideoCapture object and a matrix to store the pixel values and then the use of a single command to load from that VideoCapture object into that matrix. In iOS the same process requires a number of initialisation steps in order to begin using the camera. This includes things like setting the video stream quality, orientation, and which camera to use. \par
+
+I began my work with iOS by attempting to retrieve a frame from the iPad's camera. The first thing I tried was using the CVVideoCamera library that comes packaged with the OpenCV framework for iOS. I was able to get a frame from the camera and process it before displaying it on the iPad's screen without much difficulty. However when I attempted to complete more complex tasks problems began to appear \cite{iOS}. \par
+
+The iPad's camera, unlike my iMac's built in camera, has an auto-focussing lens. When a scene is viewed the lens automatically adjusts to bring the scene into the sharpest focus possible. This turned out to be a large problem as the intrinsic parameters of the camera are only useful for a given focus setting and all of the calibration images must me taken at the same focus setting. As the lens was automatically focussing when I took the calibration images the process was flawed even at that stage. \par
+
+In order to overcome this problem, more information is required. I needed to be able to get and set some value that represents the lens position \cite{xamarin} then hopefully I could take an adequate set of calibration images and calculate the camera's intrinsic parameters for that value. The plan is to calculate the camera's intrinsic parameters for a variety of focus settings and, when the app is operating, measure the focus setting and then set it to the nearest value with stored intrinsic parameters. This need for more information lead to the use of Apple's AVFoundation framework \cite{apple_class}, which is a more complex but flexible framework for using the iPad's camera. I have successfully used this framework to set the focus value and take a set of calibration images, however I am unable to ascertain if the calculated intrinsic parameters are accurate as I have yet to implement a reliable augmented reality program on iOS. \par
+
+The major difficulty in using the AVFoundation framework comes in processing an image and then displaying it to the screen as the video feed is displayed directly to the screen by way of a preview layer. Displaying the camera frame that I have processed is not an obvious task and is an ongoing problem. I am currently attempting to convert from the format Apple stores the camera frames in to an OpenCV Mat matrix in order to process the image but it is proving to be rather difficult \cite{stack}. Once I can successfully do that then I can check the calculated intrinsic parameters for accuracy. \par
+
+
+\section{Limitations and Future Work}
+
+My main objective is to finish porting the work I have done to iOS and to ensure it works correctly. I must figure out how to correctly display a processed camera frame to the iPad's screen and I must solve the variable focus camera calibration issue.
+
+Once the iOS porting is complete it will be time to integrate my part of the project with the game logic and rendering developed by Ash and the networking developed by Shahne. 
+
+Successfully integrating the three parts of the Giguesaur project will result in a completed working iPad application, but there is room for improvement in my part of the project. 
+
+The main limitation of my current implementation of camera localisation is the use of the findChessboardCorners function to locate the relevant features in an image. This function is subject to the limitation that the whole chessboard pattern must be in view of the camera or none of the internal corners' image-space coordinates are given. Without those image-space coordinates the pose estimation algorithm cannot be executed and therefore the camera's location cannot be determined. This effectively limits the puzzle to being played on a tabletop without anyone obscuring the board from another player's iPad, which is at odds with our vision of how the game should be played.
+
+With that in mind my goal, once the basic application is complete, is to develop a marker tracking system that doesn't require that the whole marker (or all markers) be in view at one time, and if at all possible allow for a marker to be partially obscured without loss of camera location. There has been some research on the topic of partial marker occlusion \cite{occlusion} and I would like to be able to implement a similar system. 
+
+
+
+\end{document}

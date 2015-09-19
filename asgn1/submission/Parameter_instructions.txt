@@ -1,0 +1,3 @@
+Under Globals you can change PLANE_ROW and PLANE_COL. That will change the size
+of the grid. But they must be odd numbers. I also haven't tested when they 
+aren't equal to each other. 
