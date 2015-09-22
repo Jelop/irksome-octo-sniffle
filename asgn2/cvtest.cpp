@@ -39,11 +39,35 @@ void initClusters(int type){
         break;
 
     case 2:
+        std::cout << "reached case 2" << std::endl;
         for(int row = 0; row < image.rows; row++){
             for(int col = 0; col < image.cols; col++){
                 labels.at<uchar>(row,col) = randCluster(generator);
             }
         }
+
+        /* {
+        int lab0 = 0;
+        int lab1 = 0;
+        int lab2 = 0;
+        int lab3 = 0;
+        for(int row = 0; row < image.rows; row++){
+            for(int col = 0; col < image.cols; col++){
+                int label = labels.at<uchar>(row,col);
+                if(label == 0)
+                    lab0++;
+                else if(label == 1)
+                    lab1++;
+                else if(label == 2)
+                    lab2++;
+                else if(label == 3)
+                    lab3++;
+            }
+        }
+        
+        std::cout << "lab0: " << lab0 << " lab1: " << lab1 << " lab2: " << lab2 << " lab3: " << lab3 << std::endl;
+        } */       
+        
         for(int cluster = 0; cluster < k; cluster++){
             cv::Vec3i sum = cv::Vec3i(0,0,0);
             int count = 0;
@@ -51,13 +75,16 @@ void initClusters(int type){
                 for(int col = 0; col < labels.cols; col++){
                     if(labels.at<uchar>(row,col) == cluster){
                         cv::Vec3b pixel = image.at<cv::Vec3b>(row,col);
-                        sum[0] += pixel[0];
-                        sum[1] += pixel[1];
-                        sum[2] += pixel[2];
+                        /* sum[0] += pixel[0];
+                           sum[1] += pixel[1];
+                           sum[2] += pixel[2];*/
+                        sum += pixel;
                         count++;
                     }
                 }
             }
+            cv::Vec3b temp = cv::Vec3b(sum[0]/count,sum[1]/count,sum[2]/count);
+            std::cout << temp << std::endl;
             clusters.push_back(cv::Vec3b(sum[0]/count,sum[1]/count,sum[2]/count));
         }
         break;
@@ -86,7 +113,7 @@ void initClusters(int type){
                 }
             }
             
-            double weight_sum;
+            double weight_sum = 0;
             for(int row = 0; row < distances.rows; row++){
                 for(int col = 0; col < distances.cols; col++){
                     weight_sum += distances.at<double>(row,col);
@@ -147,23 +174,24 @@ void kMeans(){
                 for(int col = 0; col < labels.cols; col++){
                     if(labels.at<uchar>(row,col) == centre){
                         cv::Vec3b pixel = image.at<cv::Vec3b>(row,col);
-                        sum[0] += pixel[0];
-                        sum[1] += pixel[1];
-                        sum[2] += pixel[2];
+                        /*sum[0] += pixel[0];
+                          sum[1] += pixel[1];
+                          sum[2] += pixel[2];*/
+                        sum += pixel;
                         count++;
                     }
                 }
             }
             //random cluster can result in clusters that have no assigned elements
             //Likely still a bug here actually.
-            std::cout << sum << std::endl;
+            //  std::cout << sum << std::endl;
             if(count > 0){
                 //std::cout << sum << std::endl;
-                std::cout << "cluster " << centre << "  before: "\
-                          << clusters[centre] << std::endl;
+                // std::cout << "cluster " << centre << "  before: "    \
+                //  << clusters[centre] << std::endl;
                 clusters[centre] = cv::Vec3b(sum[0]/count,sum[1]/count,sum[2]/count);
-                std::cout << "cluster " << centre << "  after: " << clusters[centre]\
-                          << std::endl;
+                // std::cout << "cluster " << centre << "  after: " << clusters[centre] \
+                // << std::endl;
             }
         }
 
@@ -185,13 +213,13 @@ int main(int argc, char **argv){
 
 
     if(argc != 4){
-        std::cout << "Usage: ./kMeans k cluster_init imageFilePath" << std::endl;
+        std::cout << "Usage: ./kMeans k cluster_init dist_measure imageFilePath" << std::endl;
         return -1;
     }
     
     k = atoi(argv[1]);
-    distance_method = 1;
-    image = cv::imread(argv[3]);
+    distance_method = atoi(argv[3]);
+    image = cv::imread(argv[4]);
     labels = cv::Mat(image.rows, image.cols, CV_8UC1);
     if(!image.data){
         std::cout << "Failed to locate image" << std::endl;
