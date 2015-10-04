@@ -10,10 +10,27 @@ cv::Mat image;
 std::vector<cv::Vec3b> clusters;
 cv::Mat labels;
 
-double computeEuclidean(cv::Vec3b element, cv::Vec3b centre){
-    return sqrt(pow(element[0]-centre[0],2) +
-                pow(element[1]-centre[1],2) +
-                pow(element[2]-centre[2],2));
+double computeDistance(cv::Vec3b element, cv::Vec3b centre){
+
+    switch(distance_method){
+
+    case 1:
+        
+        return sqrt(pow(element[0]-centre[0],2) +
+                    pow(element[1]-centre[1],2) +
+                    pow(element[2]-centre[2],2));
+        break;
+
+    case 2:
+
+        //element[0] = (element[0]/180) * 256;
+        //centre[0] = (centre[0]/180) * 256;
+        return sqrt(pow(element[0]-centre[0],2) +
+                    pow(element[1]-centre[1],2));
+        break;
+        
+    }
+    return -1;
 }
 
 void initClusters(int type){
@@ -44,29 +61,7 @@ void initClusters(int type){
             for(int col = 0; col < image.cols; col++){
                 labels.at<uchar>(row,col) = randCluster(generator);
             }
-        }
-
-        /* {
-        int lab0 = 0;
-        int lab1 = 0;
-        int lab2 = 0;
-        int lab3 = 0;
-        for(int row = 0; row < image.rows; row++){
-            for(int col = 0; col < image.cols; col++){
-                int label = labels.at<uchar>(row,col);
-                if(label == 0)
-                    lab0++;
-                else if(label == 1)
-                    lab1++;
-                else if(label == 2)
-                    lab2++;
-                else if(label == 3)
-                    lab3++;
-            }
-        }
-        
-        std::cout << "lab0: " << lab0 << " lab1: " << lab1 << " lab2: " << lab2 << " lab3: " << lab3 << std::endl;
-        } */       
+        }       
         
         for(int cluster = 0; cluster < k; cluster++){
             cv::Vec3i sum = cv::Vec3i(0,0,0);
@@ -100,13 +95,12 @@ void initClusters(int type){
                 
                     double min_dist = std::numeric_limits<double>::max();
                     for(int centre = 0; centre < clusters.size(); centre++){
-                        if(distance_method == 1){
-                            double distance = computeEuclidean(image.at<cv::Vec3b>(row,col),
-                                                               clusters[centre]);
-                            // std::cout << "distance: " << distance << std::endl;
-                            if(distance < min_dist)
-                                min_dist = distance;
-                        }
+                        double distance = computeDistance(image.at<cv::Vec3b>(row,col),
+                                                          clusters[centre]);
+                        // std::cout << "distance: " << distance << std::endl;
+                        if(distance < min_dist)
+                            min_dist = distance;
+                        
                     
                     }
                     distances.at<double>(row,col) = pow(min_dist,2);
@@ -157,7 +151,8 @@ void kMeans(){
                 for(int centre = 0; centre < clusters.size(); centre++){
                     cv::Vec3b pixel = image.at<cv::Vec3b>(row,col);
                     cv::Vec3b cluster = clusters[centre];
-                    double distance = computeEuclidean(pixel, cluster);
+                    double distance = computeDistance(pixel, cluster);
+                
                     //std::cout << "distance: " << distance << std::endl;
                     if(distance < min_dist){
                         labels.at<uchar>(row,col) = centre;
@@ -212,7 +207,7 @@ void kMeans(){
 int main(int argc, char **argv){
 
 
-    if(argc != 4){
+    if(argc != 5){
         std::cout << "Usage: ./kMeans k cluster_init dist_measure imageFilePath" << std::endl;
         return -1;
     }
@@ -225,6 +220,10 @@ int main(int argc, char **argv){
         std::cout << "Failed to locate image" << std::endl;
         return -1;
     }
+
+    if(distance_method == 2)
+        cv::cvtColor(image, image, CV_BGR2HSV);
+    
     std::cout << image.type() << std::endl;
     initClusters(atoi(argv[2]));
 
@@ -245,7 +244,8 @@ int main(int argc, char **argv){
       }
       std::cout << "\n" << std::endl;
       }*/
-                
+    if(distance_method == 2)
+        cv::cvtColor(image, image, CV_HSV2BGR);
     cv::imshow("",image);
     cv::waitKey(0);
     return 0;
