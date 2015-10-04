@@ -3,15 +3,22 @@
 #include <limits>
 #include <random>
 #include <chrono>
+#include <cstdlib>
 
+double DIST_FACTOR = 0.01;
 int k;
 int distance_method;
 cv::Mat image;
 std::vector<cv::Vec3b> clusters;
+std::vector<cv::Point2i> cluster_locations;
 cv::Mat labels;
 
-double computeDistance(cv::Vec3b element, cv::Vec3b centre){
+double computeDistance(int row, int col, int cluster_number){
 
+    cv::Vec3b element = image.at<cv::Vec3b>(row,col);
+    cv::Vec3b centre = clusters[cluster_number];
+    cv::Point2i location = cluster_locations[cluster_number];
+    
     switch(distance_method){
 
     case 1:
@@ -23,10 +30,24 @@ double computeDistance(cv::Vec3b element, cv::Vec3b centre){
 
     case 2:
 
-        //element[0] = (element[0]/180) * 256;
-        //centre[0] = (centre[0]/180) * 256;
+        element[0] = (element[0]/180) * 256;
+        centre[0] = (centre[0]/180) * 256;
         return sqrt(pow(element[0]-centre[0],2) +
                     pow(element[1]-centre[1],2));
+        break;
+        
+    case 3:
+        return sqrt(pow(element[0]-centre[0],2) +
+                    pow(element[1]-centre[1],2) +
+                    pow(element[2]-centre[2],2) +
+                    (DIST_FACTOR * pow(row - location.x,2)) +
+                    (DIST_FACTOR * pow(col - location.y,2)));
+        break;
+    
+    case 4:
+        return abs(element[0] - centre[0]) +
+            abs(element[1] - centre[1]) +
+            abs(element[2] - centre[2]);
         break;
         
     }
@@ -49,6 +70,7 @@ void initClusters(int type){
             int row = randRow(generator);
             int col = randCol(generator);
             clusters.push_back(image.at<cv::Vec3b>(row,col));
+            cluster_locations.push_back(cv::Point2i(row,col));
             std::cout << "row: " << row << " col: " << col << std::endl;
             std::cout << image.at<cv::Vec3b>(row,col) << std::endl;
             cv::Vec3b pixel = image.at<cv::Vec3b>(row,col);
@@ -65,6 +87,7 @@ void initClusters(int type){
         
         for(int cluster = 0; cluster < k; cluster++){
             cv::Vec3i sum = cv::Vec3i(0,0,0);
+            cv::Point2i loc_sum = cv::Point2i(0,0);
             int count = 0;
             for(int row = 0; row < labels.rows; row++){
                 for(int col = 0; col < labels.cols; col++){
@@ -73,20 +96,27 @@ void initClusters(int type){
                         /* sum[0] += pixel[0];
                            sum[1] += pixel[1];
                            sum[2] += pixel[2];*/
+                        loc_sum.x += row;
+                        loc_sum.y += col;
                         sum += pixel;
                         count++;
                     }
                 }
             }
-            cv::Vec3b temp = cv::Vec3b(sum[0]/count,sum[1]/count,sum[2]/count);
-            std::cout << temp << std::endl;
+            //cv::Vec3b temp = cv::Vec3b(sum[0]/count,sum[1]/count,sum[2]/count);
+            // cv::Point2i loc_temp = cv::Point2i(loc_sum.x/count, loc_sum.y/count);
+            //std::cout << temp << std::endl;
             clusters.push_back(cv::Vec3b(sum[0]/count,sum[1]/count,sum[2]/count));
+            cluster_locations.push_back(cv::Point2i(loc_sum.x/count, loc_sum.y/count));
         }
         break;
 
     case 3:
         //K-means++ step 1
-        clusters.push_back(image.at<cv::Vec3b>(randRow(generator),randCol(generator)));
+        int initRow = randRow(generator);
+        int initCol = randCol(generator);
+        clusters.push_back(image.at<cv::Vec3b>(initRow,initCol));
+        cluster_locations.push_back(cv::Point2i(initRow,initCol));
         //Repeat until k centres have been chosen
         for(int i = 1; i < k; i++){
             cv::Mat distances = cv::Mat(image.rows, image.cols, CV_64FC1);
@@ -95,8 +125,7 @@ void initClusters(int type){
                 
                     double min_dist = std::numeric_limits<double>::max();
                     for(int centre = 0; centre < clusters.size(); centre++){
-                        double distance = computeDistance(image.at<cv::Vec3b>(row,col),
-                                                          clusters[centre]);
+                        double distance = computeDistance(row, col, centre);
                         // std::cout << "distance: " << distance << std::endl;
                         if(distance < min_dist)
                             min_dist = distance;
@@ -125,6 +154,7 @@ void initClusters(int type){
                         std::cout << "thresh "<< threshold << " dist_val " << dist_val << std::endl;
                         std::cout << "pushed cluster " << i << std::endl;
                         clusters.push_back(image.at<cv::Vec3b>(row,col));
+                        cluster_locations.push_back(cv::Point2i(row,col));
                         breakloop = true;
                         break;
                     }
@@ -142,8 +172,13 @@ void initClusters(int type){
 
 void kMeans(){
 
-    for(int i = 0; i < 20; i++){
-        std::cout << i << std::endl;
+    std::vector<cv::Vec3b> prev_clusters;
+    int count = 0;
+    bool first_itertion = true;
+    
+    while(count < k){
+        count = 0;
+        //std::cout << i << std::endl;
         for(int row = 0; row < image.rows; row++){
             for(int col = 0; col < image.cols; col++){
                 //int label = -1;
@@ -151,7 +186,7 @@ void kMeans(){
                 for(int centre = 0; centre < clusters.size(); centre++){
                     cv::Vec3b pixel = image.at<cv::Vec3b>(row,col);
                     cv::Vec3b cluster = clusters[centre];
-                    double distance = computeDistance(pixel, cluster);
+                    double distance = computeDistance(row, col, centre);
                 
                     //std::cout << "distance: " << distance << std::endl;
                     if(distance < min_dist){
@@ -190,18 +225,28 @@ void kMeans(){
             }
         }
 
-    
+        if(!first_itertion){
+            for(int i = 0; i < clusters.size(); i++){
+                if(clusters[i] == prev_clusters[i]) count++;
+            }
+        } else {
+            first_itertion = false;
+        }
+        
+        prev_clusters = clusters;
+        std::cout << "stable clusters = " << count << std::endl;
 
-        for(int centre = 0; centre < clusters.size(); centre++){
-            for(int row = 0; row < labels.rows; row++){
-                for(int col = 0; col < labels.cols; col++){
-                    if(labels.at<uchar>(row,col) == centre){
-                        image.at<cv::Vec3b>(row,col) = clusters[centre];
-                    }
+    }
+
+    for(int centre = 0; centre < clusters.size(); centre++){
+        for(int row = 0; row < labels.rows; row++){
+            for(int col = 0; col < labels.cols; col++){
+                if(labels.at<uchar>(row,col) == centre){
+                    image.at<cv::Vec3b>(row,col) = clusters[centre];
                 }
             }
         }
-    }
+    }    
 }
                 
 int main(int argc, char **argv){
@@ -221,6 +266,8 @@ int main(int argc, char **argv){
         return -1;
     }
 
+    cv::blur(image,image,cv::Size(3,3));
+    
     if(distance_method == 2)
         cv::cvtColor(image, image, CV_BGR2HSV);
     
