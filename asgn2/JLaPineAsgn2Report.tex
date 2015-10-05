@@ -1,0 +1,102 @@
+\documentclass{article}
+
+\usepackage{graphicx} % Required for the inclusion of images
+%\usepackage{natbib} % Required to change bibliography style to APA
+\usepackage{amsmath} % Required for some math elements 
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{url}
+%\usepackage{biblatex}
+\usepackage{tocloft}
+%\usepackage[nottoc,numbib]{tocbibind} % Reference in TOC and numbered 
+\usepackage{verbatim}
+%\usepackage[toc]{glossaries}
+%\usepackage{hyperref}
+%\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+
+%\makeglossaries
+
+\geometry {a4paper, left = 30mm}
+\renewcommand{\baselinestretch}{1.5}
+\setlength{\parskip}{1em}
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+
+%\usepackage{times} % Uncomment to use the Times New Roman font
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{COSC450: kMeans Segmentation} % Title
+
+\author{Joshua La Pine} % Author name
+
+\date{\today} % Date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+\begin{center}
+Department of Computer Science \\
+Otago University \\
+
+\end{center}
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Instructions}
+
+\section{Initialisation Methods}
+
+I chose to implement three different initialisation methods. Random Selection, Random Clustering, and $k$-means++.
+
+\subsection{Random Selection}
+
+The first method I implemented was Random Selection. It works quite simply by randomly selecting elements from your data set and using them as cluster centres. I chose to implement Random Selection because of its simplicty. In order to test the $k$-means algorithm I had implemented I needed a cluster initialisation method so the best choice to get something working quickly was Random Selection. 
+
+My implementation works using a std::default\_random\_engine and a std::uniform\_int\_distribution to generate random, uniformly distributed integers. I use these to generate a number in the range of $0-(image\_rows-1)$ and a number in the range $0-(image\_cols-1)$. These numbers specify a pixel in the image for which I extract the information needed for the algorithm and store it in a separate vector. I perform this step k number of times, which leaves me with a vector consisting of k cluster centres. 
+
+\subsection{Random Clustering}
+
+Random Clustering is the second initialisation method that I chose to implement. Its implementation is slightly more complex when compared to Random Selection but it is still trivial. I chose to implement it because I thought that it would provide better segmentation than Random Selection and I wanted to compare them. Random Clustering works by randomly assigning each element in your data set to one of your k clusters. Then the average of each of these clusters is calculated and used as a cluster centre. 
+
+I start by creating an OpenCV `label' matrix the same size as the input image with the type CV\_8UC1. This type is an unsigned char and so will only hold values in the range 0--255. I made the assumption that my program wouldn't be used for more than 256 clusters at a time but it would be simple to modify it to allow for a greater number of clusters.  My implementation makes use of std::default\_random\_engine and std::uniform\_int\_distribution to generate a random, uniformly distributed integer in the range 0--$k-1$ for each pixel in the image. In the label matrix described above I store that generated cluster number in the cell with row and column numbers corresponding to the pixel's location in the image.
+
+For each cluster I run through every pixel in the image and check to see if that pixel has been assigned to this cluster. If it has, then, depending on the chosen distance metrix, I add the pixel's RGB or HSV values to a sum vector and increment a count. Once the whole image has been processed then the sum vector is divided by the count to get an average RGB or HSV vector which then gets pushed to a clusters vector for later use.
+
+\subsection{$k$-means++}
+
+$k$-means++ is the most complex of the three cluster initialisation methods I implemented, which is also the reason that I chose to implement it. I reasoned that given its increased compelxity it was likely to provide the best segmentation.  
+
+The method begins by randomly selecting a cluster centre from the data set, which in my implementation is done in the way previously described. Then until there are k clusters the following repeats. 
+
+For every element in the data set you compute its distance from the nearest cluster centre. In my code this involves iterating over every pixel in the image and calculating its distance from each cluster. The smallest distance for each pixel squared is stored in a matrix the same size as the image.
+
+Once the smallest distances have been calculated the new cluster centre must be chosen using a weighted probability distribution where the probability of an element being chosen is proportional to its calculated distance squared. I chose to store the squared distances.
+
+I had a choice between two methods for the weighted probability distribution. There is a class in the random package of c++ called std::discrete\_distribution that accepts a vector of $n$ weights and returns a number, $i$, in the range $0 \leq i < n$ with probability of $i$ divided by the sum of all weights. This is exactly what $k$-means++ calls for but the issue was that it requires all of the weights to be in a vector. Then I would have had to perform some arithmetic to convert $i$ into an index corresponding to a pixel in the image. This wouldn't have been difficult but I decided upon implementing a different method for syntactic reasons. 
+
+In my actual implementation I sum up all of the stored squared distances and randomly select a double value in the range $0-weight\_sum$. This double value acts as a threshold. I iterate over all of the stored distances and subtract the distance from the threshold value until the threshold value is less than the current distance value. When that happens I use the pixel to which that distance value corresponds as a new cluster centre. 
+
+\section{Distance Metrics}
+
+I chose to implement four different distance metrics in my assignment. Euclidean distance using the RGB values of each pixel, Euclidean distance using HSV values of each pixel, Euclidean distance using the RGB values of each pixel and the location of each pixel with a scaling factor, and a metric called `City Block distance'.
+
+\subsection{Euclidean RGB}
+
+ 
+
+
+\bibliographystyle{ieeetr}
+\nocite{*}
+\bibliography{references}
+
+%----------------------------------------------------------------------------------------
+
+
+\end{document}

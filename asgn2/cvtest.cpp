@@ -5,7 +5,7 @@
 #include <chrono>
 #include <cstdlib>
 
-double DIST_FACTOR = 0.01;
+double DIST_FACTOR = 0.1;
 int k;
 int distance_method;
 cv::Mat image;
@@ -252,7 +252,7 @@ void kMeans(){
 int main(int argc, char **argv){
 
 
-    if(argc != 5){
+    if(argc != 6){
         std::cout << "Usage: ./kMeans k cluster_init dist_measure imageFilePath" << std::endl;
         return -1;
     }
@@ -266,7 +266,8 @@ int main(int argc, char **argv){
         return -1;
     }
 
-    cv::blur(image,image,cv::Size(3,3));
+         cv::blur(image,image,cv::Size(3,3));
+    // cv::GaussianBlur(image,image,cv::Size(5,5), 5, 5);
     
     if(distance_method == 2)
         cv::cvtColor(image, image, CV_BGR2HSV);
@@ -295,5 +296,6 @@ int main(int argc, char **argv){
         cv::cvtColor(image, image, CV_HSV2BGR);
     cv::imshow("",image);
     cv::waitKey(0);
+    cv::imwrite(argv[5], image);
     return 0;
 }
