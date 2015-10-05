@@ -21,7 +21,7 @@
 \setlength{\parskip}{1em}
 \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
-\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.subsection 6)
 
 %\usepackage{times} % Uncomment to use the Times New Roman font
 
@@ -49,7 +49,13 @@ Otago University \\
 \tableofcontents
 \newpage
 
-\section{Instructions}
+\subsection{Instructions}
+
+To run my program compile it from the command line using the accompanying Makefile. Then type "./JLaPine_asgn2 k initCluster distance_measure distance_factor image". Where k is the desired number of clusters
+
+\section{Termination Condition}
+
+My implementation of $k$-means keeps track of the cluster centres from the previous iteration. When all of the clusters centres are the same as they were in the previous iteration then I consider the algorithm to have converged. 
 
 \section{Initialisation Methods}
 
@@ -59,7 +65,7 @@ I chose to implement three different initialisation methods. Random Selection, R
 
 The first method I implemented was Random Selection. It works quite simply by randomly selecting elements from your data set and using them as cluster centres. I chose to implement Random Selection because of its simplicty. In order to test the $k$-means algorithm I had implemented I needed a cluster initialisation method so the best choice to get something working quickly was Random Selection. 
 
-My implementation works using a std::default\_random\_engine and a std::uniform\_int\_distribution to generate random, uniformly distributed integers. I use these to generate a number in the range of $0-(image\_rows-1)$ and a number in the range $0-(image\_cols-1)$. These numbers specify a pixel in the image for which I extract the information needed for the algorithm and store it in a separate vector. I perform this step k number of times, which leaves me with a vector consisting of k cluster centres. 
+My implementation works using a std::default\_random\_engine and a std::uniform\_int\_distribution to generate random, uniformly distributed integers. I use these to generate a number in the range of $0-(image\_rows-1)$ and a number in the range $0-(image\_cols-1)$. These numbers specify a pixel in the image for which I extract the information needed for the algorithm and store it in a separate vector. I perform this step k number of times, which leaves me with a vector consisting of k cluster centres.
 
 \subsection{Random Clustering}
 
@@ -84,12 +90,165 @@ I had a choice between two methods for the weighted probability distribution. Th
 In my actual implementation I sum up all of the stored squared distances and randomly select a double value in the range $0-weight\_sum$. This double value acts as a threshold. I iterate over all of the stored distances and subtract the distance from the threshold value until the threshold value is less than the current distance value. When that happens I use the pixel to which that distance value corresponds as a new cluster centre. 
 
 \section{Distance Metrics}
-
-I chose to implement four different distance metrics in my assignment. Euclidean distance using the RGB values of each pixel, Euclidean distance using HSV values of each pixel, Euclidean distance using the RGB values of each pixel and the location of each pixel with a scaling factor, and a metric called `City Block distance'.
+%rewrite this mate. I didn't mention city block distance
+I chose to implement four different distance metrics in my assignment. Euclidean distance using the RGB values of each pixel, Euclidean distance using HSV values of each pixel, Euclidean distance using the RGB values of each pixel and the location of each pixel with a scaling factor.
 
 \subsection{Euclidean RGB}
 
- 
+I chose to implement Euclidean RGB first because it is simple and the most intuitive distance metric, like Random Selection it helped to get my code working quickly. It works by calculating the Euclidean distance between a given element and a given cluster. So in my $k$-means implementation, when the distance must be computed, the row and column of the pixel and the vector index of the cluster are sent to a computeDistance method. For Euclidean RGB this method returns $\sqrt{(r_1-r_2)^2 + (g_1-g_2)^2 + (b_1-b_2)^2}$ where r, g, and b are the values of the red, green, and blue colour channels respectively, and subscript 1 is the pixel and 2 is the cluster centre. 
+
+\subsection{Euclidean HSV}
+
+Euclidean HSV works in much the same way as the RGB version with a couple of differences. Where RGB represents colours as combinations of red, green, and blue, HSV represents colours in terms of Hue, Saturation, and Value. Hue is the basic colour like blue or green, Saturation is the amount of colour, and Value is the how light or dark the colour is. The reason for implementing Euclidean HSV is that if you ignore the Value component then hopefully colours that differ due to shadow will be clustered together. This is because colours that differ only by the Value are likely to be part of the same object but lit differently.
+
+OpenCV represents HSV as a 3-vector of unsigned char values. Where H is in the range $0-179$ and Saturation is in the range $0-255$. In order to effectively use the Euclidean distance between these components I scaled the Hue so that it would be the same range as Saturation. This is so that each term has equal weight in the distance calculation. 
+
+After this scaling the same calculation as RGB is performed except with the Hue and Saturation terms. 
+
+\subsection{Euclidean RGB with Distance}
+
+This distance metric is also similar to RGB in that most of the formula is the same. The difference is the inclusion of pixel locations in the formula. The idea is that pixels close together in the image are more likely to be representing the same object, so by including location information in the distance calculation you might be able to account for that. 
+
+When cluster centres are initialised their location is also stored. The distance calculation itself is the same as RGB but with the scaled differences in pixel locations being added to the formula as below.
+
+\begin{equation*}
+ \sqrt{(r_1-r_2)^2 + (g_1-g_2)^2 + (b_1-b_2)^2 + (DF*(row_1-row_2)^2) + (DF*(col_1-col_2)^2)}	
+\end{equation*}
+
+
+Where $DF$ is a scaling factor, $row$ is the row of the pixel in the image, $col$ is the column of the pixel in the image, and the subscript numbers are as above.
+%DF should be passed as a command line argument.
+DF is necessary because of the relative importance of the distance between pixel locations in the image and the distance between the colour channels of the pixels. By making DF smaller the pixel locations have less of an impact on the result of the distance calculation and vice versa. 
+
+The remaining question is how to define a pixel's location in the first place.
+In the case of Random Selection and $k$-means++ this is simply the row and column coordinates of the pixel. However in the case of Random Clustering the calculated cluster centres might not correspond to pixels at all. So my solution was to make the location for the calculated clusters the average of all of the pixel coordinates of pixels in that cluster. As the random number generation in Random Clustering is uniform I expect that this results in the locations of the generated cluster centres being approximately the centre of the image. I think this would make Random Clustering in combination with Euclidean RGB with Distance give less useful results. 
+
+\section{Experiments}
+
+\subsection{Initialisation Comparison}
+
+This experiment is designed to compare the three kinds of cluster initialisation method I have implemented. The aim is to discover the strengths and weaknesses of each initialisation method. With that in mind decided to split the experiment into 3 sub-experiments. For this experiment I kept the number of clusters constant at 6, the image was mms.jpeg and the distance metric was Euclidean RGB.
+
+\subsubsection{Average Initialisation Time}
+
+The first thing I investigated was the time it takes each of the initialisation methods to finish initialising the cluster centres. To do this I ran my program 50 times for each cluster initialisation method and timed how long the cluster initialisation took. I then divided the sum of the results by 50 to get the average.
+
+\underline{Results}
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.69\textwidth]{initGraph}
+\caption{Average Initialisation Time over 50 runs}
+\end{center}
+\end{figure}
+
+
+
+\underline{Discussion}
+
+
+\subsubsection{Average Convergence Time}
+
+Secondly I investigated the affect that the cluster initialisation methods had on the number of iterations it took for the $k$-means algorithm to converge. As the distance metric, number of clusters, and the input image are constant the number of iterations for convergence seemed a good metric for performance. I ran my program 50 times and summed the number of iterations each run took to converge. I then divided the sum by 50 to get the average.
+
+
+\underline{Results}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.69\textwidth]{initConvGraph}
+\caption{Average Convergence Time over 50 runs}
+\end{center}
+\end{figure}
+
+\underline{Discussion}
+
+
+\subsubsection{Segmentation Results}
+
+Lastly I investigated the affect each initialisation method had on segmentation. 
+
+
+\underline{Results}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.30\textwidth]{images/first/mmsinit1}
+\includegraphics[width=0.30\textwidth]{images/first/mmsinit2}
+\includegraphics[width=0.30\textwidth]{images/first/mmsinit3}
+\caption{Left: Random Selection. Centre: Random Clustering. Right: $k$-means++ }
+\end{center}
+\end{figure}
+
+
+\underline{Discussion}
+
+
+\subsection{Distance Metric Segmentation Comparison}
+
+For this experiment I wanted to determine the affect of the different distance metrics on segmentation performance. Given that RGB with Distance when the scale factor is set to 0 is the same as Euclidean RGB I have decided to treat RGB with Distance with varying scale factors as different distance metrics. So the distance metrics will be Euclidean RGB, Euclidean HSV, RGB with Distance with a scale factor of 0.05, 0.1, and 0.15. 
+
+I begin with a set of input images. For each input image I run my program with each distance metric 10 times and keep the best result. Then I compare the resulting image for each source image. 
+
+The initialisation method for this experiment is $k$-means++. $k$ will vary for each image, I will set $k$ to approximate number of colour in the image. However, from previous experimentation I have found that different values of $k$ produce different results with different distance metrics. For example, for a given image Euclidean RGB might produce the best result when $k = 6$ but Euclidean HSV might produces the best results when $k = 4$. To fully investigate these differences would take far more time than I have. 
+
+\underline{Results}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.30\textwidth]{elephants}
+\includegraphics[width=0.30\textwidth]{images/elephants/elephants6330}
+\includegraphics[width=0.30\textwidth]{images/elephants/elephants632}
+\caption{Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
+\includegraphics[width=0.30\textwidth]{images/elephants/elephants633005}
+\includegraphics[width=0.30\textwidth]{images/elephants/elephants63301}
+\includegraphics[width=0.30\textwidth]{images/elephants/elephants633015}
+\caption{Left: RGB Distance 0.05 | Centre: RGB Distance 0.1 | Right: RGB Distance 0.15 }
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.30\textwidth]{building}
+\includegraphics[width=0.30\textwidth]{images/building/building331}
+\includegraphics[width=0.30\textwidth]{images/building/building332}
+\caption{Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
+\includegraphics[width=0.30\textwidth]{images/building/building333005}
+\includegraphics[width=0.30\textwidth]{images/building/building33301}
+\includegraphics[width=0.30\textwidth]{images/building/building333015}
+\caption{Left: RGB Distance 0.05 | Centre: RGB Distance 0.1 | Right: RGB Distance 0.15 }
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.30\textwidth]{rural}
+\includegraphics[width=0.30\textwidth]{images/rural/rural531}
+\includegraphics[width=0.30\textwidth]{images/rural/rural532}
+\caption{Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
+\includegraphics[width=0.30\textwidth]{images/rural/rural533005}
+\includegraphics[width=0.30\textwidth]{images/rural/rural53301}
+\includegraphics[width=0.30\textwidth]{images/rural/rural533015}
+\caption{Left: RGB Distance 0.05 | Centre: RGB Distance 0.1 | Right: RGB Distance 0.15 }
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.30\textwidth]{mms}
+\includegraphics[width=0.30\textwidth]{images/mms/mms631}
+\includegraphics[width=0.30\textwidth]{images/mms/mms632}
+\caption{Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
+\includegraphics[width=0.30\textwidth]{images/mms/mms633005}
+\includegraphics[width=0.30\textwidth]{images/mms/mms63301}
+\includegraphics[width=0.30\textwidth]{images/mms/mms633015}
+\caption{Left: RGB Distance 0.05 | Centre: RGB Distance 0.1 | Right: RGB Distance 0.15 }
+\end{center}
+\end{figure}
+
+
+
 
 
 \bibliographystyle{ieeetr}
