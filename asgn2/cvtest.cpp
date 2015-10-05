@@ -30,8 +30,8 @@ double computeDistance(int row, int col, int cluster_number){
 
     case 2:
 
-        element[0] = (element[0]/180) * 256;
-        centre[0] = (centre[0]/180) * 256;
+        element[0] = ((float)element[0]/180) * 256;
+        centre[0] = ((float)centre[0]/180) * 256;
         return sqrt(pow(element[0]-centre[0],2) +
                     pow(element[1]-centre[1],2));
         break;
