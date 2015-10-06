@@ -51,9 +51,9 @@ Otago University \\
 
 \subsection{Instructions}
 
-To run my program compile it from the command line using the accompanying Makefile. Then type "./JLaPine_asgn2 k initCluster distance_measure distance_factor image". Where k is the desired number of clusters
+To run my program compile it from the command line using the accompanying Makefile. Then type "\.\/JLaPine\_asgn2 k InitCluster DistanceMeasure DistanceFactor Image". Where k is the desired number of clusters. InitCluster is a number in the range 1--3 where 1 represents Random Selection, 2 is Random Clustering, and 3 is $k$-means++. DistanceMeasure is a number in the range 1--3 where 1 represents Euclidean RGB, 2 is Euclidean HSV, and 3 is RGB with Distance. Distance Factor is a double value that determines the scaling for the RGB with Distance distance metric. Image is the path to the desired input image. 
 
-\section{Termination Condition}
+\subsection{Termination Condition}
 
 My implementation of $k$-means keeps track of the cluster centres from the previous iteration. When all of the clusters centres are the same as they were in the previous iteration then I consider the algorithm to have converged. 
 
@@ -87,11 +87,11 @@ Once the smallest distances have been calculated the new cluster centre must be 
 
 I had a choice between two methods for the weighted probability distribution. There is a class in the random package of c++ called std::discrete\_distribution that accepts a vector of $n$ weights and returns a number, $i$, in the range $0 \leq i < n$ with probability of $i$ divided by the sum of all weights. This is exactly what $k$-means++ calls for but the issue was that it requires all of the weights to be in a vector. Then I would have had to perform some arithmetic to convert $i$ into an index corresponding to a pixel in the image. This wouldn't have been difficult but I decided upon implementing a different method for syntactic reasons. 
 
-In my actual implementation I sum up all of the stored squared distances and randomly select a double value in the range $0-weight\_sum$. This double value acts as a threshold. I iterate over all of the stored distances and subtract the distance from the threshold value until the threshold value is less than the current distance value. When that happens I use the pixel to which that distance value corresponds as a new cluster centre. 
+In my actual implementation I sum up all of the stored squared distances and randomly select a double value in the range $0-weight\_sum$. This double value acts as a threshold. I iterate over all of the stored distances and subtract the distances from the threshold value until the threshold value is less than the current distance value. When that happens I use the pixel to which that distance value corresponds as a new cluster centre. 
 
 \section{Distance Metrics}
 %rewrite this mate. I didn't mention city block distance
-I chose to implement four different distance metrics in my assignment. Euclidean distance using the RGB values of each pixel, Euclidean distance using HSV values of each pixel, Euclidean distance using the RGB values of each pixel and the location of each pixel with a scaling factor.
+I chose to implement three different distance metrics in my assignment. Euclidean distance using the RGB values of each pixel, Euclidean distance using HSV values of each pixel and the Euclidean distance using the RGB values of each pixel and the location of each pixel with a scaling factor.
 
 \subsection{Euclidean RGB}
 
@@ -99,13 +99,13 @@ I chose to implement Euclidean RGB first because it is simple and the most intui
 
 \subsection{Euclidean HSV}
 
-Euclidean HSV works in much the same way as the RGB version with a couple of differences. Where RGB represents colours as combinations of red, green, and blue, HSV represents colours in terms of Hue, Saturation, and Value. Hue is the basic colour like blue or green, Saturation is the amount of colour, and Value is the how light or dark the colour is. The reason for implementing Euclidean HSV is that if you ignore the Value component then hopefully colours that differ due to shadow will be clustered together. This is because colours that differ only by the Value are likely to be part of the same object but lit differently.
+Euclidean HSV works in much the same way as the RGB version with a couple of differences. Where RGB represents colours as combinations of red, green, and blue, HSV represents colours in terms of Hue, Saturation, and Value. Hue is the basic colour like blue or green, Saturation is the amount of colour, and Value is the how light or dark the colour is. The reason for implementing Euclidean HSV is that if you ignore the Value component then hopefully colours that differ by shading will be clustered together. This is because colours that differ only by the Value are likely to be part of the same object but lit differently.
 
 OpenCV represents HSV as a 3-vector of unsigned char values. Where H is in the range $0-179$ and Saturation is in the range $0-255$. In order to effectively use the Euclidean distance between these components I scaled the Hue so that it would be the same range as Saturation. This is so that each term has equal weight in the distance calculation. 
 
 After this scaling the same calculation as RGB is performed except with the Hue and Saturation terms. 
 
-\subsection{Euclidean RGB with Distance}
+\subsection{RGB with Distance}
 
 This distance metric is also similar to RGB in that most of the formula is the same. The difference is the inclusion of pixel locations in the formula. The idea is that pixels close together in the image are more likely to be representing the same object, so by including location information in the distance calculation you might be able to account for that. 
 
@@ -121,7 +121,7 @@ Where $DF$ is a scaling factor, $row$ is the row of the pixel in the image, $col
 DF is necessary because of the relative importance of the distance between pixel locations in the image and the distance between the colour channels of the pixels. By making DF smaller the pixel locations have less of an impact on the result of the distance calculation and vice versa. 
 
 The remaining question is how to define a pixel's location in the first place.
-In the case of Random Selection and $k$-means++ this is simply the row and column coordinates of the pixel. However in the case of Random Clustering the calculated cluster centres might not correspond to pixels at all. So my solution was to make the location for the calculated clusters the average of all of the pixel coordinates of pixels in that cluster. As the random number generation in Random Clustering is uniform I expect that this results in the locations of the generated cluster centres being approximately the centre of the image. I think this would make Random Clustering in combination with Euclidean RGB with Distance give less useful results. 
+In the case of Random Selection and $k$-means++ this is simply the row and column coordinates of the pixel. However in the case of Random Clustering the calculated cluster centres might not correspond to pixels at all. So my solution was to make the location for the calculated clusters the average of all of the pixel coordinates of pixels in that cluster. As the random number generation in Random Clustering is uniform I expect that this results in the locations of the generated cluster centres being approximately the centre of the image. I think this would make Random Clustering in combination with RGB with Distance give less useful results. 
 
 \section{Experiments}
 
@@ -147,6 +147,8 @@ The first thing I investigated was the time it takes each of the initialisation 
 
 \underline{Discussion}
 
+These results are exactly what I expected. Random selection takes almost no time at all because it merely requires the generation of a few random numbers. My implementation of Random clustering requires several passes over the cluster data to generate the average cluster centres, so that would obviously take more time than random selection. As $k$-means++ is by far the most complex method, involving the repeated use of a weighted probability distribution to generate cluster centres, it would be the most time consuming method.
+
 
 \subsubsection{Average Convergence Time}
 
@@ -164,10 +166,14 @@ Secondly I investigated the affect that the cluster initialisation methods had o
 
 \underline{Discussion}
 
+These results are also farily in line with what I anticipated. Random Selection's performance, with regards to convergence time, will vary by a fair amount due to its stochastic nature. So it is no wonder that it didn't perform as well as $k$-means++. Random Clustering's shortcomings aren't due to its stochastic element though. As each intial cluster centre is an average of a random group of pixels and in my implementation the random number generation is uniform then the number of pixels assigned to each cluster is likely to be about equal. This results in the initial clusters being very close to one another, sometimes even the same. With that in mind it is logical that random clustering would take longer to converge than $k$-means++ as the cluster centres would undergo more change before stabilising.
+
+$k$-means++ performed the best of the 3 cluster initialisation methods. This is due to the fact that the initial cluster centres are more likely to be distinct from one another. So when pixels are being assigned to a cluster they are less likely to be assigned to a different cluster in a following iteration, which would in turn result in the cluster centres converging sooner. 
+
 
 \subsubsection{Segmentation Results}
 
-Lastly I investigated the affect each initialisation method had on segmentation. 
+Lastly I investigated the affect each initialisation method had on segmentation. I ran my program a few times for each initialisation method and chose the result that was typical of the method. 
 
 
 \underline{Results}
@@ -184,12 +190,21 @@ Lastly I investigated the affect each initialisation method had on segmentation.
 
 \underline{Discussion}
 
+In terms of the segmentation performance each initialisation method did not produce drastically different results. I suspect using a set of different images would have given more insight. However, if you look closely the $k$-means++ is slightly better than Random Selection and Random Clustering. There are less instances of a given m\&m having pixels in three separate clusters. This difference is minor though and more investigation is required to comment fruther. Also sometimes Random Clustering would result in duplicate cluster centres which results in less segmentation. 
+
+\subsubsection{Overall Discussion}
+
+Overall I think it is best to use $k$-means++. Its result is far more likely to produce distinct initial clusters than the other methods which in turn leads to faster convergence. It would be interesting to time the iterations and vary $k$ to see how well $k$-means++ scales with $k$ in terms of speed. I suspect that the lower convergence time would more than account for the increased initialisation time but I would have to investigatae further to know for sure. 
+
+Random Clustering is objectively the weakest with middling initialisation time and convergence time equal with Random Selection. Therefore there seems to be little reason to use Random Clustering. 
+
+Random Selection is a decent method to use but results will vary by a fair amount due to randomness.
 
 \subsection{Distance Metric Segmentation Comparison}
 
-For this experiment I wanted to determine the affect of the different distance metrics on segmentation performance. Given that RGB with Distance when the scale factor is set to 0 is the same as Euclidean RGB I have decided to treat RGB with Distance with varying scale factors as different distance metrics. So the distance metrics will be Euclidean RGB, Euclidean HSV, RGB with Distance with a scale factor of 0.05, 0.1, and 0.15. 
+For this experiment I wanted to determine the affect of the different distance metrics on segmentation performance. Given that RGB with Distance when the scale factor is set to 0 is the same as Euclidean RGB I have decided to treat RGB with Distance with varying scale factors as different distance metrics. So the distance metrics will be Euclidean RGB, Euclidean HSV, and RGB with Distance with a scale factor of 0.05, 0.1, and 0.15. 
 
-I begin with a set of input images. For each input image I run my program with each distance metric 10 times and keep the best result. Then I compare the resulting image for each source image. 
+I begin with a set of input images. For each input image I run my program with each distance metric around 10 times and keep the best result. Then I compare the resulting image for each source image. 
 
 The initialisation method for this experiment is $k$-means++. $k$ will vary for each image, I will set $k$ to approximate number of colour in the image. However, from previous experimentation I have found that different values of $k$ produce different results with different distance metrics. For example, for a given image Euclidean RGB might produce the best result when $k = 6$ but Euclidean HSV might produces the best results when $k = 4$. To fully investigate these differences would take far more time than I have. 
 
@@ -200,7 +215,7 @@ The initialisation method for this experiment is $k$-means++. $k$ will vary for 
 \includegraphics[width=0.30\textwidth]{elephants}
 \includegraphics[width=0.30\textwidth]{images/elephants/elephants6330}
 \includegraphics[width=0.30\textwidth]{images/elephants/elephants632}
-\caption{Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
+\caption{$k = 6$ | Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
 \includegraphics[width=0.30\textwidth]{images/elephants/elephants633005}
 \includegraphics[width=0.30\textwidth]{images/elephants/elephants63301}
 \includegraphics[width=0.30\textwidth]{images/elephants/elephants633015}
@@ -213,7 +228,7 @@ The initialisation method for this experiment is $k$-means++. $k$ will vary for 
 \includegraphics[width=0.30\textwidth]{building}
 \includegraphics[width=0.30\textwidth]{images/building/building331}
 \includegraphics[width=0.30\textwidth]{images/building/building332}
-\caption{Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
+\caption{$k = 3$ | Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
 \includegraphics[width=0.30\textwidth]{images/building/building333005}
 \includegraphics[width=0.30\textwidth]{images/building/building33301}
 \includegraphics[width=0.30\textwidth]{images/building/building333015}
@@ -226,7 +241,7 @@ The initialisation method for this experiment is $k$-means++. $k$ will vary for 
 \includegraphics[width=0.30\textwidth]{rural}
 \includegraphics[width=0.30\textwidth]{images/rural/rural531}
 \includegraphics[width=0.30\textwidth]{images/rural/rural532}
-\caption{Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
+\caption{$k = 5$ | Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
 \includegraphics[width=0.30\textwidth]{images/rural/rural533005}
 \includegraphics[width=0.30\textwidth]{images/rural/rural53301}
 \includegraphics[width=0.30\textwidth]{images/rural/rural533015}
@@ -239,7 +254,7 @@ The initialisation method for this experiment is $k$-means++. $k$ will vary for 
 \includegraphics[width=0.30\textwidth]{mms}
 \includegraphics[width=0.30\textwidth]{images/mms/mms631}
 \includegraphics[width=0.30\textwidth]{images/mms/mms632}
-\caption{Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
+\caption{$k = 6$ | Left: Source Image | Centre: Euclidean RGB | Right: Euclidean HSV }
 \includegraphics[width=0.30\textwidth]{images/mms/mms633005}
 \includegraphics[width=0.30\textwidth]{images/mms/mms63301}
 \includegraphics[width=0.30\textwidth]{images/mms/mms633015}
@@ -247,15 +262,25 @@ The initialisation method for this experiment is $k$-means++. $k$ will vary for 
 \end{center}
 \end{figure}
 
+\underline{Discussion}
 
+My main observation resulting from this experiment is that image segmentation is as much an art as it is a science. It is very difficult to tell, prior to experimentation, how well a set of parameters will perform on a given image. 
 
+Consider the pictures of the elephants. With RGB the elephants are comprised of three colours but there are patches of colour in common with the background. I considered this to be substandard segmentation. Compare that result with RGB with Distance and a scaling factor of 0.05, where the elephants are mostly comprised of three colours that are unique to the elephants. I considered that to be a rather good segmentation. 
 
+Now consider pictures of the building. By far the best result was obtained using HSV as a distance metric. I think this was likely because of the shadowing in the image. All of the other metrics put the shadowed areas in a different cluster from the rest of the building. Also note the clustering of the background and sky together in the HSV image. I believe this was due to the Hue and Saturation of the background buildings being most similar to the blue sky and differing more in Value.
 
-\bibliographystyle{ieeetr}
-\nocite{*}
-\bibliography{references}
+HSV seems to work most effectively with blocks of colour that are shaded differently. Scenes with more complex colouring don't work well when using HSV. You need only look at the HSV elephant and m\&ms and then compare them to the HSV rural scene and HSV building. 
+
+The scaling factor for RGB with Distance is similarly fickle. Which scaling works best depends on the image. Consider that a scale factor of 0.05 produced reasonably good segmentation for the elephants and the rural scene but wasn't very effective on the image of building, especially when compared to a scale factor of 0.1. It is worth mentioning that the building with scale factor 0.1 was a rare result and most of the time the results were much like scale factor 0.05
+
+Finally, the composition of the image appears to have a decent impact on the effectiveness of RGB with Distance. Consider the three RGB with Distance m\&ms images. The incorporation of pixel location into the distance metric is based on the assumption that closely grouped pixels are more likely to represent the same object. As the different m\&ms colours are spread throughout the image this assumption fails. For example, a cluster centre might be the middle pixel of a yellow m\&m so pixels close to that one would be more likely to be put into that yellow m\&m cluster. However that m\&m might be surrounded by, say, red m\&ms. Also consider a yellow m\&m in a completely different part of the image, you would want that to be clustered with the yellow cluster centre but the colour of closer cluster centres will affect the liklihood of that. 
+
+You can see the shortcomings of RGB with Distance in the m\&m images. As the scale factor goes up the colours start to `bleed' more and blocks of colour start to appear.   
 
 %----------------------------------------------------------------------------------------
+\section{References}
 
+Images besides m\&ms taken from https://www.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/
 
 \end{document}

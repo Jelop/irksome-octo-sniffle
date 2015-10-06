@@ -43,12 +43,6 @@ double computeDistance(int row, int col, int cluster_number){
                     (DIST_FACTOR * pow(row - location.x,2)) +
                     (DIST_FACTOR * pow(col - location.y,2)));
         break;
-    
-    case 4:
-        return abs(element[0] - centre[0]) +
-            abs(element[1] - centre[1]) +
-            abs(element[2] - centre[2]);
-        break;
         
     }
     return -1;
@@ -253,7 +247,7 @@ int main(int argc, char **argv){
 
 
     if(argc != 7){
-        std::cout << "Usage: ./kMeans k cluster_init dist_measure imageFilePath" << std::endl;
+        std::cout << "Usage: ./JLaPine_asgn2 k cluster_init dist_measure dist_factor imageFilePath" << std::endl;
         return -1;
     }
     
@@ -266,8 +260,6 @@ int main(int argc, char **argv){
         return -1;
     }
     DIST_FACTOR = atof(argv[4]);
-    //  cv::blur(image,image,cv::Size(3,3));
-    // cv::GaussianBlur(image,image,cv::Size(5,5), 5, 5);
     
     if(distance_method == 2)
         cv::cvtColor(image, image, CV_BGR2HSV);
@@ -276,22 +268,7 @@ int main(int argc, char **argv){
     initClusters(atoi(argv[2]));
 
     kMeans();
-    /*int count = 0;
-      cv::Vec3b clust = clusters[0];
-      for(int i = 0; i < labels.rows; i++){
-      for(int j = 0; j < labels.cols; j++){
-      cv::Vec3b pixel = image.at<cv::Vec3b>(i,j);
-      if(pixel[0] != clust[0] || pixel[1] != clust[1] || pixel[2] != clust[2])
-      std::cout << "colour descrepency!!!" << std::endl;
-      }
-      }*/
-    /*for(int i = 0; i < labels.rows; i++){
-      for(int j  = 0; j < labels.cols; j++){
-      std::cout << (int)labels.at<uchar>(i,j) << " ";
-      if(j % 200 == 0) std::cout << std::endl;
-      }
-      std::cout << "\n" << std::endl;
-      }*/
+
     if(distance_method == 2)
         cv::cvtColor(image, image, CV_HSV2BGR);
     cv::imshow("",image);
